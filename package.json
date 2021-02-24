@@ -17,11 +17,15 @@
     "p-throttle": "^4.0.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-full-page": "^0.1.11",
     "sqlite3": "^5.0.1",
     "twit": "^2.2.11"
   },
   "devDependencies": {
+    "autoprefixer": "^10.2.4",
     "eslint": "^7.20.0",
-    "eslint-plugin-react": "^7.22.0"
+    "eslint-plugin-react": "^7.22.0",
+    "postcss": "^8.2.6",
+    "tailwindcss": "^2.0.3"
   }
 }

@@ -4,6 +4,7 @@ import Twit from "twit";
 import jwt from "next-auth/jwt";
 import { getLists, getAllTweetsList, getAllFollowing } from "../../queries";
 import { classify, addToClassifier } from "../../utils";
+import sendMail from "../../sendmail";
 
 export default async (req, res) => {
   const secret = process.env.JWT_SECRET;
@@ -29,7 +30,7 @@ export default async (req, res) => {
 
   if (!session) {
     res.send({
-      error: "You must be sign in to view the protected content on this page."
+      error: "You must be signed in to view the protected content on this page."
     });
   } else {
     res.json({

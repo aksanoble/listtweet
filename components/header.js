@@ -1,75 +1,28 @@
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/client";
-import styles from "./header.module.css";
 
 export default function Header() {
-  const [session, loading] = useSession();
-  if (!session)
-    return (
-      <div>
-        <h1>
-          <Link href="/">ListTwitter</Link>
-        </h1>
-        <a target="_blank" href="https://www.buymeacoffee.com/aksanoble">
-          Buy me a tea!
-        </a>
-      </div>
-    );
+  console.log(process.env.NEXT_PUBLIC_ADMIN_SPONSOR_LINK, "Admin");
   return (
-    <header>
-      <noscript>
-        <style>{`.nojs-show { opacity: 1; top: 0; }`}</style>
-      </noscript>
-      <div className={styles.signedInStatus}>
-        <p
-          className={`nojs-show ${
-            !session && loading ? styles.loading : styles.loaded
-          }`}
-        >
-          {!session && (
-            <>
-              <span className={styles.notSignedInText}>
-                You are not signed in
-              </span>
-              <a
-                href={`/api/auth/signin`}
-                className={styles.buttonPrimary}
-                onClick={e => {
-                  e.preventDefault();
-                  signIn();
-                }}
-              >
-                Sign in
-              </a>
-            </>
-          )}
-          {session && (
-            <>
-              {session.user.image && (
-                <span
-                  style={{ backgroundImage: `url(${session.user.image})` }}
-                  className={styles.avatar}
-                />
-              )}
-              <span className={styles.signedInText}>
-                <small>Signed in as</small>
-                <br />
-                <strong>{session.user.email || session.user.name}</strong>
-              </span>
-              <a
-                href={`/api/auth/signout`}
-                className={styles.button}
-                onClick={e => {
-                  e.preventDefault();
-                  signOut();
-                }}
-              >
-                Sign out
-              </a>
-            </>
-          )}
-        </p>
-      </div>
-    </header>
+    <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
+      <nav className="relative flex items-center justify-between sm:h-10 md:justify-center">
+        <div className="flex items-center flex-1 md:absolute md:inset-y-0 md:left-0">
+          <div className="flex items-center justify-between w-full md:w-auto">
+            <a href="/">ListTweet</a>
+          </div>
+        </div>
+        <div className="hidden md:absolute md:flex md:items-center md:justify-end md:inset-y-0 md:right-0">
+          <span className="inline-flex rounded-md shadow">
+            <a
+              target="_blank"
+              href={process.env.NEXT_PUBLIC_ADMIN_SPONSOR_LINK}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-indigo-600 bg-white hover:text-indigo-500 focus:outline-none focus:shadow-outline-blue active:bg-gray-50 active:text-indigo-700 transition duration-150 ease-in-out"
+            >
+              Buy me a Tea!
+            </a>
+          </span>
+        </div>
+      </nav>
+    </div>
   );
 }
