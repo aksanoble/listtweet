@@ -5,9 +5,9 @@ import { dependencies } from "../package.json";
 export default function Footer() {
   console.log(process.env.NEXT_PUBLIC_ADMIN_TWITTER, "twitter");
   return (
-    <div className="bg-white">
-      <div className="max-w-screen-xl mx-auto py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
-        <nav className="-mx-5 -my-2 flex flex-wrap justify-center">
+    <div className="bg-white flex-0">
+      <div className="max-w-screen-xl mx-auto py-4 md:py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
+        <nav className="mx-0 my-0 flex flex-wrap justify-center">
           <div className="px-5 py-2">
             <a
               href="/privacy"
@@ -33,10 +33,10 @@ export default function Footer() {
             </a>
           </div>
         </nav>
-        <div className="mt-8 flex justify-center">
+        <div className="mt-4 md:mt-8 flex justify-center">
           <a
             href={process.env.NEXT_PUBLIC_ADMIN_TWITTER}
-            className="ml-6 text-gray-400 hover:text-gray-500"
+            className="text-gray-400 hover:text-gray-500"
           >
             <span className="sr-only">Twitter</span>
             <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@ export default function Footer() {
             </svg>
           </a>
         </div>
-        <div className="mt-8">
+        <div className="mt-4 md:mt-8">
           <p className="text-center text-base leading-6 text-gray-400">
             &copy; 2021 All rights reserved.
           </p>
