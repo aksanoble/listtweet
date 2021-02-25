@@ -1,7 +1,7 @@
 import Header from "../components/header";
 import Footer from "../components/footer";
 
-export default function Hero() {
+export default function Hero(props) {
   return (
     <div className="relative bg-gray-50 overflow-hidden">
       <div className="hidden sm:block sm:absolute sm:inset-y-0 sm:h-full sm:w-full">
@@ -130,16 +130,19 @@ export default function Hero() {
                 {" "}
                 Here's how.
               </a>{" "}
+              It only takes 5 minutes.
             </p>
 
             <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
               <div className="rounded-md shadow">
-                <a
-                  href="#"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline-indigo transition duration-150 ease-in-out md:py-4 md:text-lg md:px-10"
+                <button
+                  onClick={() => {
+                    props.fullPage.current.scrollToSlide(2);
+                  }}
+                  className="cursor-pointer w-full flex items-center justify-center px-8 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline-indigo transition duration-150 ease-in-out md:py-4 md:text-lg md:px-10"
                 >
                   I've got my Lists
-                </a>
+                </button>
               </div>
             </div>
           </div>

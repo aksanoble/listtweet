@@ -1,9 +1,7 @@
-import Layout from "../components/layout";
+import { useRef } from "react";
 import Sort from "../components/sort";
-import { signIn } from "next-auth/client";
+
 import { useState } from "react";
-import Footer from "../components/footer";
-import Header from "../components/header";
 import { FullPage, Slide } from "react-full-page";
 import Hero from "../components/hero";
 import CreateList from "../components/create-list";
@@ -13,6 +11,7 @@ import { useSession } from "next-auth/client";
 
 export default function Page() {
   const [session, loading] = useSession();
+  const fullPageRef = useRef();
   const [signInStatus, setSignInStatus] = useState("");
   if (loading) {
     console.log("loading", loading);
@@ -25,12 +24,12 @@ export default function Page() {
   if (!session) {
     return (
       <>
-        <FullPage>
+        <FullPage ref={fullPageRef}>
           <Slide>
-            <Hero />
+            <Hero fullPage={fullPageRef} />
           </Slide>
           <Slide>
-            <CreateList />
+            <CreateList fullPage={fullPageRef} />
           </Slide>
           <Slide>
             <ConfirmList />
@@ -39,9 +38,5 @@ export default function Page() {
       </>
     );
   }
-  return (
-    <Layout>
-      <Sort />
-    </Layout>
-  );
+  return <Sort />;
 }

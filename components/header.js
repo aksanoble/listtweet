@@ -2,13 +2,14 @@ import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/client";
 
 export default function Header() {
-  console.log(process.env.NEXT_PUBLIC_ADMIN_SPONSOR_LINK, "Admin");
   return (
     <div className="max-w-screen-xl mx-auto px-4 sm:px-6">
       <nav className="relative flex items-center justify-between sm:h-10 md:justify-center">
         <div className="flex items-center flex-1 md:absolute md:inset-y-0 md:left-0">
           <div className="flex items-center justify-between w-full md:w-auto">
-            <a href="/">ListTweet</a>
+            <Link href="/">
+              <a>ListTweet</a>
+            </Link>
           </div>
         </div>
         <div className="hidden md:absolute md:flex md:items-center md:justify-end md:inset-y-0 md:right-0">
