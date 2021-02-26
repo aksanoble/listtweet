@@ -1,28 +1,25 @@
 import Link from "next/link";
-import styles from "./footer.module.css";
-import { dependencies } from "../package.json";
 
 export default function Footer() {
-  console.log(process.env.NEXT_PUBLIC_ADMIN_TWITTER, "twitter");
   return (
     <div className="bg-white flex-0">
       <div className="max-w-screen-xl mx-auto py-4 md:py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
         <nav className="mx-0 my-0 flex flex-wrap justify-center">
           <div className="px-5 py-2">
-            <a
+            <Link
               href="/privacy"
               className="text-base leading-6 text-gray-500 hover:text-gray-900"
             >
               Privacy
-            </a>
+            </Link>
           </div>
           <div className="px-5 py-2">
-            <a
+            <Link
               href="/terms"
               className="text-base leading-6 text-gray-500 hover:text-gray-900"
             >
               Terms
-            </a>
+            </Link>
           </div>
           <div className="px-5 py-2">
             <a

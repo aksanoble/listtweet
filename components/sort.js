@@ -98,18 +98,12 @@ export default function Sort() {
                     <h1 className="mt-2 mb-8 text-3xl text-center leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl sm:leading-10">
                       🧑‍💻 We're on it...
                     </h1>
-                    <ul>
-                      <li className="text-xl text-gray-500 leading-8">
-                        We have started organising your lists.{" "}
-                      </li>
-                      <li className="text-xl text-gray-500 leading-8">
-                        We will send you an email report once we have your lists
-                        sorted!
-                      </li>
-                      <li className="text-xl text-gray-500 leading-8">
-                        Thank you for trying out ListTweet.
-                      </li>
-                    </ul>
+                    <p className="text-xl text-center text-gray-500 leading-8">
+                      We have started organising your lists. <br /> We will send
+                      you an email report once we have your lists sorted. <br />
+                      Thank you for trying out ListTweet.
+                    </p>
+
                     <div className="flex justify-center p-12">
                       <button
                         className="cursor-pointer inline-flex items-center justify-center px-5 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
