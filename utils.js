@@ -1,5 +1,9 @@
-import { values, groupBy, maxBy } from "lodash";
+import { values, groupBy, maxBy, isEmpty } from "lodash";
 import natural from "natural";
+import sendMail from "./sendmail";
+import { getListMembers } from "./queries";
+import EmailTmplNoMembers from "./email-template-no-members";
+import EmailTemplate from "./email-template-html";
 
 export const tweetText = t => {
   if (t.retweeted_status) {
@@ -38,4 +42,24 @@ export const classify = (tweets, classifier) => {
     user,
     tag
   );
+};
+
+export const processLists = person => {
+  if (isEmpty(person.preLists)) {
+    sendMail(person, <EmailTemplate {...person} />);
+  } else {
+    getListMembers(person);
+  }
+};
+
+export const processListMembers = person => {
+  const lists = Object.keys(person.membersByList);
+  const emptyLists = lists.filter(l => person.membersByList[l].length === 0);
+
+  if (emptyLists.length === lists.length) {
+    sendMail(person, <EmailTmplNoMembers {...person} />);
+  } else {
+    // getTweets
+    console.log("Start processing list members tweet");
+  }
 };

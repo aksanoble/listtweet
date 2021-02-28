@@ -19,7 +19,22 @@ export default NextAuth({
   },
   callbacks: {
     async jwt(token, user, account, profile, isNewUser) {
-      return { ...token, ...account, ...user };
+      if (account && user) {
+        return {
+          id: account.id,
+          accessToken: account.accessToken,
+          refreshToken: account.refreshToken,
+          screenName: account.results.screen_name,
+          image: user.image,
+          email: user.email,
+          name: user.name
+        };
+      }
+      return token;
+    },
+    async session(session, user) {
+      session.user.image = user.image;
+      return session;
     }
   },
 

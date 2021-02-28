@@ -16,9 +16,10 @@ export default function Page() {
               Privacy Policy
             </h1>
             <p className="text-xl text-center text-gray-500 leading-8">
-              Data provided to this site isn't stored in a database. All
-              computations are performed in memory and cleared as soon as the
-              task is completed.
+              Twitter access tokens will only be used to compute Lists and
+              deleted immediately once the task is completed. We keep a history
+              of your twitter username for analytics. No information will be
+              shared with any third party.
             </p>
           </div>
         </div>

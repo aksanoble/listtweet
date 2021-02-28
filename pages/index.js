@@ -13,9 +13,6 @@ export default function Page() {
   const [session, loading] = useSession();
   const fullPageRef = useRef();
   const [signInStatus, setSignInStatus] = useState("");
-  if (loading) {
-    console.log("loading", loading);
-  }
 
   const onSignInClick = () => {
     setSignInStatus("loading");

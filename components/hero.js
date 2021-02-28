@@ -81,13 +81,6 @@ export default function Hero(props) {
           >
             <div className="rounded-lg bg-white shadow-xs overflow-hidden">
               <div className="px-5 pt-4 flex items-center justify-between">
-                <div>
-                  <img
-                    className="h-8 w-auto"
-                    src="/img/logos/workflow-mark-on-white.svg"
-                    alt=""
-                  />
-                </div>
                 <div className="-mr-2">
                   <button
                     type="button"
