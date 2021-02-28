@@ -2,8 +2,10 @@ import { values, groupBy, maxBy, isEmpty } from "lodash";
 import natural from "natural";
 import sendMail from "./sendmail";
 import { getListMembers } from "./queries";
-import EmailTmplNoMembers from "./email-template-no-members";
-import EmailTemplate from "./email-template-html";
+import { listTweets } from "./stages/listStatus";
+import EmailTmplNoMembers from "./emailTemplates/email-template-no-members";
+import EmailTemplate from "./emailTemplates/email-template-html";
+import EmailTmplOneMember from "./emailTemplates/email-template-one-member";
 
 export const tweetText = t => {
   if (t.retweeted_status) {
@@ -47,6 +49,8 @@ export const classify = (tweets, classifier) => {
 export const processLists = person => {
   if (isEmpty(person.preLists)) {
     sendMail(person, <EmailTemplate {...person} />);
+  } else if (person.preLists.length === 1) {
+    sendMail(person, <EmailTmplOneMember {...person} />);
   } else {
     getListMembers(person);
   }
@@ -61,5 +65,15 @@ export const processListMembers = person => {
   } else {
     // getTweets
     console.log("Start processing list members tweet");
+    listTweets(person);
   }
+};
+
+export const createPerson = token => {
+  const classifier = new natural.BayesClassifier();
+
+  return {
+    ...token,
+    classifier
+  };
 };

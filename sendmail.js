@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
 import ReactDOMServer from "react-dom/server";
 
-import EmailHTMLTemplate from "./email-template-html";
-import emailTemplateText from "./email-template-text";
+import EmailHTMLTemplate from "./emailTemplates/email-template-html";
+import emailTemplateText from "./emailTemplates/email-template-text";
 
 export default async function sendMail(person, template) {
   // create reusable transporter object using the default SMTP transport

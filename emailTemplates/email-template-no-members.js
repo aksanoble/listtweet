@@ -4,8 +4,9 @@ const EmailTemplate = props => {
       <p>Dear {props.name}</p>
       <p>
         All the Lists on your Twitter account are empty. Please seed each of
-        your lists with at least one account. This allows us to learn more about
-        your Lists and classify the rest of the accounts you follow.
+        your lists with at least one account. <br />
+        This allows us to learn more about your Lists and classify the rest of
+        the accounts you follow.
       </p>
       <p>
         Thank you for trying out <a href="https://listtweet.com">ListTweet</a>

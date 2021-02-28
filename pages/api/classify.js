@@ -8,7 +8,12 @@ import {
   getAllFollowing,
   getListMembers
 } from "../../queries";
-import { classify, addToClassifier, processLists } from "../../utils";
+import {
+  classify,
+  addToClassifier,
+  processLists,
+  createPerson
+} from "../../utils";
 import sendMail from "../../sendmail";
 
 export default async (req, res) => {
@@ -25,7 +30,7 @@ export default async (req, res) => {
       message: "Hello"
     });
 
-    const withLists = await getLists(token);
+    const withLists = await getLists(createPerson(token));
     processLists(withLists);
     // const withMembers = await getListMembers(withLists);
 
