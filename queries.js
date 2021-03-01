@@ -2,6 +2,9 @@ import pThrottle from "p-throttle";
 import { classify } from "./utils";
 import { chunk } from "lodash";
 import { processListMembers, getThrottle } from "./utils";
+import EmailTemplate from "./emailTemplates/email-template-html";
+
+import sendMail from "./sendmail";
 
 export const getLists = async (
   person,
@@ -135,7 +138,6 @@ export const getAllFollowing = async (
 
 export const addToList = async person => {
   const T = person.tClient;
-  const screenName = person.screenName;
   const membersByList = person.lists;
   const lists = Object.keys(membersByList);
 
@@ -163,5 +165,6 @@ export const addToList = async person => {
     })
   );
 
+  sendMail(person, <EmailTemplate {...person} />);
   console.log("Done adding members to list");
 };
