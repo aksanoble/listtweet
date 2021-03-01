@@ -1,4 +1,5 @@
-import { values, groupBy, maxBy, isEmpty } from "lodash";
+import { values, groupBy, maxBy, isEmpty, get, set } from "lodash";
+import pThrottle from "p-throttle";
 import natural from "natural";
 import sendMail from "./sendmail";
 import { getListMembers } from "./queries";
@@ -6,6 +7,8 @@ import { listTweets } from "./stages/listStatus";
 import EmailTmplNoMembers from "./emailTemplates/email-template-no-members";
 import EmailTemplate from "./emailTemplates/email-template-html";
 import EmailTmplOneMember from "./emailTemplates/email-template-one-member";
+import { RATE_LIMITS } from "./globals";
+import Twit from "twit";
 
 export const tweetText = t => {
   if (t.retweeted_status) {
@@ -14,20 +17,17 @@ export const tweetText = t => {
   return t.full_text;
 };
 
-export const addToClassifier = tweetsByList => {
-  const classifier = new natural.BayesClassifier();
-  Object.keys(tweetsByList).forEach(list => {
-    const tweets = tweetsByList[list];
-    if (tweets.length > 0) {
-      const user = tweets[0].user.screen_name;
-      const bio = tweets[0].user.description;
-      console.log(`Adding to Classifier ${user} with ${list}`);
-      classifier.addDocument(bio, list);
-      tweets.forEach(t => {
-        classifier.addDocument(tweetText(t), list);
-      });
-    }
-  });
+export const addToClassifier = (person, tweets, listId) => {
+  const classifier = person.classifier;
+  if (tweets.length > 0) {
+    const user = tweets[0].user.screen_name;
+    const bio = tweets[0].user.description;
+    console.log(`Adding to Classifier ${user} with ${listId}`);
+    classifier.addDocument(bio, listId);
+    tweets.forEach(t => {
+      classifier.addDocument(tweetText(t), listId);
+    });
+  }
 };
 
 export const classify = (tweets, classifier) => {
@@ -71,9 +71,27 @@ export const processListMembers = person => {
 
 export const createPerson = token => {
   const classifier = new natural.BayesClassifier();
+  const tClient = new Twit({
+    consumer_key: process.env.TWITTER_ID,
+    consumer_secret: process.env.TWITTER_SECRET,
+    access_token: token.accessToken,
+    access_token_secret: token.refreshToken
+  });
 
   return {
     ...token,
-    classifier
+    classifier,
+    tClient,
+    throttle: {}
   };
+};
+
+export const getThrottle = (person, path, method) => {
+  if (!get(person, `throttle.${path}.${method}`)) {
+    const rateLimit = RATE_LIMITS[path][method];
+    console.log(`Initialising for person ${person.name}`);
+    const throttleDefault = pThrottle({ limit: 1, interval: rateLimit });
+    set(person, `throttle.${path}.${method}`, throttleDefault);
+  }
+  return person.throttle[path][method];
 };
