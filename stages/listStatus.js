@@ -22,6 +22,7 @@ export const listTweets = async person => {
       })();
     })
   );
+  person.classifier.train();
   const friends = await getAllFollowing(person);
 
   console.log(friends.length);

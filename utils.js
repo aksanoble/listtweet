@@ -30,20 +30,19 @@ export const addToClassifier = (person, tweets, listId) => {
   }
 };
 
-export const classify = (tweets, classifier) => {
-  const user = tweets[0].user.screen_name;
-  const tag = accountTag[user];
-  console.log(`Classifiying Tweets of ${user} with ${tag}`);
-  console.log(
-    maxBy(
-      values(
-        groupBy(tweets.map(t => classifier.classify(tweetText(t))))
-      ).map(d => ({ name: d[0], count: d.length })),
-      o => o.count
-    ).name,
-    user,
-    tag
-  );
+export const classify = (person, user, tweets) => {
+  console.log(`Classifiying Tweets of ${user}`);
+  const classifiedList = maxBy(
+    values(
+      groupBy(tweets.map(t => person.classifier.classify(tweetText(t))))
+    ).map(d => ({ name: d[0], count: d.length })),
+    o => o.count
+  ).name;
+  if (!person.lists[classifiedList]) {
+    person.lists[classifiedList] = [];
+  }
+  person.lists[classifiedList].push(user);
+  console.log(`Classified as ${classifiedList} for user ${user}`);
 };
 
 export const processLists = person => {
@@ -63,7 +62,6 @@ export const processListMembers = person => {
   if (emptyLists.length === lists.length) {
     sendMail(person, <EmailTmplNoMembers {...person} />);
   } else {
-    // getTweets
     console.log("Start processing list members tweet");
     listTweets(person);
   }
@@ -82,6 +80,7 @@ export const createPerson = token => {
     ...token,
     classifier,
     tClient,
+    lists: {},
     throttle: {}
   };
 };

@@ -1,4 +1,5 @@
 import pThrottle from "p-throttle";
+import { classify } from "./utils";
 import { processListMembers, getThrottle } from "./utils";
 
 export const getLists = async (
@@ -83,7 +84,7 @@ export const getAllTweetsList = async (person, lists) => {
   return tweetsByList;
 };
 
-export const getTweetsAll = async (person, users) => {
+export const getTweetsAll = async (person, users, cursor) => {
   const throttleDefault = getThrottle(person, "statuses/user_timeline", "get");
   const T = person.tClient;
   const tweets = await Promise.all(
@@ -93,10 +94,14 @@ export const getTweetsAll = async (person, users) => {
           screen_name: u.screen_name,
           tweet_mode: "extended"
         });
+        classify(person, u.screen_name, res.data);
         return res.data;
       })();
     })
   );
+  if (!cursor) {
+    console.log(`Done classifiying all tweets`, JSON.stringify(person));
+  }
   return tweets.flat();
 };
 
@@ -113,7 +118,12 @@ export const getAllFollowing = async (
     return T.get(`friends/list`, { screen_name: screenName, cursor });
   })();
 
-  getTweetsAll(person, friends.data.users);
+  //Remove constraint ****************?????????>>>>>>>>>>>>>>>
+  getTweetsAll(
+    person,
+    friends.data.users.slice(0, 1),
+    friends.data.next_cursor
+  );
   acc = [...acc, ...friends.data.users];
   if (friends.data.next_cursor) {
     return getAllFollowing(person, throttle, friends.data.next_cursor_str, acc);
