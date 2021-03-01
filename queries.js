@@ -1,5 +1,6 @@
 import pThrottle from "p-throttle";
 import { classify } from "./utils";
+import { chunk } from "lodash";
 import { processListMembers, getThrottle } from "./utils";
 
 export const getLists = async (
@@ -100,7 +101,8 @@ export const getTweetsAll = async (person, users, cursor) => {
     })
   );
   if (!cursor) {
-    console.log(`Done classifiying all tweets`, JSON.stringify(person));
+    console.log(`Done classifiying all tweets`);
+    addToList(person);
   }
   return tweets.flat();
 };
@@ -118,7 +120,7 @@ export const getAllFollowing = async (
     return T.get(`friends/list`, { screen_name: screenName, cursor });
   })();
 
-  //Remove constraint ****************?????????>>>>>>>>>>>>>>>
+  //Remove constraint on users .slice ****************?????????>>>>>>>>>>>>>>>
   getTweetsAll(
     person,
     friends.data.users.slice(0, 1),
@@ -129,4 +131,37 @@ export const getAllFollowing = async (
     return getAllFollowing(person, throttle, friends.data.next_cursor_str, acc);
   }
   return acc;
+};
+
+export const addToList = async person => {
+  const T = person.tClient;
+  const screenName = person.screenName;
+  const membersByList = person.lists;
+  const lists = Object.keys(membersByList);
+
+  const throttleDefault = getThrottle(
+    person,
+    "lists/members/create_all",
+    "post"
+  );
+
+  const bulkAdd = await Promise.all(
+    lists.map(l => {
+      // ********* Change chunking to 100
+      const membersChunked = chunk(membersByList[l], 1);
+      return Promise.all(
+        membersChunked.map(async members => {
+          return throttleDefault(async () => {
+            await T.post(`lists/members/create_all`, {
+              screen_name: members,
+              list_id: l,
+              owner_screen_name: person.screenName
+            });
+          })();
+        })
+      );
+    })
+  );
+
+  console.log("Done adding members to list");
 };
