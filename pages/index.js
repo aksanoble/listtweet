@@ -1,5 +1,7 @@
 import { useRef } from "react";
 import Sort from "../components/sort";
+import Loading from "../components/loading";
+import { signIn } from "next-auth/client";
 
 import { useState } from "react";
 import { FullPage, Slide } from "react-full-page";
@@ -13,11 +15,13 @@ export default function Page() {
   const [session, loading] = useSession();
   const fullPageRef = useRef();
   const [signInStatus, setSignInStatus] = useState("");
-
   const onSignInClick = () => {
     setSignInStatus("loading");
     signIn("twitter");
   };
+  if (loading || signInStatus === "loading") {
+    return <Loading />;
+  }
   if (!session) {
     return (
       <>
@@ -29,7 +33,7 @@ export default function Page() {
             <CreateList fullPage={fullPageRef} />
           </Slide>
           <Slide>
-            <ConfirmList />
+            <ConfirmList onSignInClick={onSignInClick} />
           </Slide>
         </FullPage>
       </>

@@ -1,15 +1,8 @@
 import Header from "../components/header";
 import Footer from "../components/footer";
-import { signIn } from "next-auth/client";
 import { useState } from "react";
 
-export default function Hero() {
-  const [signInStatus, setSignInStatus] = useState("");
-
-  const onSignInClick = () => {
-    setSignInStatus("loading");
-    signIn("twitter");
-  };
+export default function Hero(props) {
   return (
     <>
       <div className="relative pt-nav flex flex-col justify-between h-screen bg-gray-50 overflow-hidden">
@@ -137,7 +130,7 @@ export default function Hero() {
                 <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
                   <div className="rounded-md shadow">
                     <button
-                      onClick={onSignInClick}
+                      onClick={props.onSignInClick}
                       className="cursor-pointer w-full flex items-center justify-center px-8 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline-indigo transition duration-150 ease-in-out md:py-4 md:text-lg md:px-10"
                     >
                       My Lists are Seeded
