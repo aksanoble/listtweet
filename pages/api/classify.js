@@ -29,9 +29,10 @@ export default async (req, res) => {
     res.json({
       message: "Hello"
     });
-    const person = createPerson(token);
-    const withLists = await getLists(person);
-    processLists(withLists);
+    console.log(helloWorld.length);
+    // const person = createPerson(token);
+    // const withLists = await getLists(person);
+    // processLists(withLists);
     // const withMembers = await getListMembers(withLists);
 
     // console.log(listMembers, "ListMembers");
