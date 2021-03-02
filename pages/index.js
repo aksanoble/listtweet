@@ -9,6 +9,8 @@ import Hero from "../components/hero";
 import CreateList from "../components/create-list";
 import ConfirmList from "../components/confirm";
 
+console.log(process.env.NODE_ENV, "ENV");
+
 import { useSession } from "next-auth/client";
 
 export default function Page() {
