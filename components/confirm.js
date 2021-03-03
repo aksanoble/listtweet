@@ -1,6 +1,5 @@
 import Header from "../components/header";
 import Footer from "../components/footer";
-import { useState } from "react";
 
 export default function Hero(props) {
   return (

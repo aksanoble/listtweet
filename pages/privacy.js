@@ -1,6 +1,3 @@
-import { useRef, useState } from "react";
-import Link from "next/link";
-import { className } from "postcss-selector-parser";
 import Header from "../components/header";
 import Footer from "../components/footer";
 

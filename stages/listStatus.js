@@ -1,4 +1,3 @@
-import Twit from "twit";
 import pThrottle from "p-throttle";
 import { addToClassifier } from "../utils";
 import { getAllFollowing } from "../queries";
@@ -24,6 +23,4 @@ export const listTweets = async person => {
   );
   person.classifier.train();
   const friends = await getAllFollowing(person);
-
-  console.log(friends.length);
 };

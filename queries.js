@@ -1,8 +1,9 @@
 import pThrottle from "p-throttle";
 import { classify } from "./utils";
-import { chunk } from "lodash";
+import { chunk, mapValues } from "lodash";
 import { processListMembers, getThrottle } from "./utils";
 import EmailTemplate from "./emailTemplates/email-template-html";
+import logger from "./logger";
 
 import sendMail from "./sendmail";
 
@@ -164,7 +165,11 @@ export const addToList = async person => {
       );
     })
   );
-
+  logger.info(
+    `Final lists for ${person.screenName} : ${JSON.stringify(
+      mapValues(person.lists, members => members.length)
+    )}`
+  );
   sendMail(person, <EmailTemplate {...person} />);
   console.log("Done adding members to list");
 };

@@ -21,7 +21,8 @@
     "react-dom": "^17.0.1",
     "react-full-page": "^0.1.11",
     "sqlite3": "^5.0.1",
-    "twit": "^2.2.11"
+    "twit": "^2.2.11",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "autoprefixer": "^10.2.4",
