@@ -139,7 +139,7 @@ export default function Hero(props) {
               </div>
             </div>
           </div>
-          <div className="mt-8 w-full absolute bg-white pb-24 sm:pb-0 bottom-0">
+          <div className="mt-8 w-full absolute bg-white pb-28 sm:pb-0 bottom-0">
             <Footer />
           </div>
         </div>
