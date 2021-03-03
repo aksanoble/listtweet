@@ -5,7 +5,7 @@ export default function Hero(props) {
   return (
     <>
       <div className="relative pt-nav flex flex-col justify-between bg-gray-50">
-        <div className="flex items-center justify-center flex-auto">
+        <div className="flex flex-col items-center justify-center flex-auto">
           <div className="hidden sm:block sm:absolute sm:inset-y-0 sm:h-full sm:w-full">
             <div className="relative h-full max-w-screen-xl mx-auto">
               <svg
@@ -139,8 +139,8 @@ export default function Hero(props) {
               </div>
             </div>
           </div>
+          <Footer />
         </div>
-        <Footer />
       </div>
     </>
   );
