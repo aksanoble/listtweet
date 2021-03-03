@@ -1,9 +1,6 @@
 import nodemailer from "nodemailer";
 import ReactDOMServer from "react-dom/server";
 
-import EmailHTMLTemplate from "./emailTemplates/email-template-html";
-import emailTemplateText from "./emailTemplates/email-template-text";
-
 export default async function sendMail(person, template) {
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
@@ -24,5 +21,5 @@ export default async function sendMail(person, template) {
     html: ReactDOMServer.renderToStaticMarkup(template)
   });
 
-  console.log("Message sent: %s", info.messageId);
+  console.log(`Email report sent to: ${person.screenName}`);
 }

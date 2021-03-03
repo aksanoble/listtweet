@@ -52,7 +52,7 @@ export const getListMembers = async person => {
   );
 
   const membersByList = listMembers.reduce((acc, current, index) => {
-    acc[lists[index].id_str] = current.slice(0, 1);
+    acc[lists[index].id_str] = current;
     return acc;
   }, {});
   processListMembers({
@@ -124,12 +124,7 @@ export const getAllFollowing = async (
     return T.get(`friends/list`, { screen_name: screenName, cursor });
   })();
 
-  //Remove constraint on users .slice ****************?????????>>>>>>>>>>>>>>>
-  getTweetsAll(
-    person,
-    friends.data.users.slice(0, 1),
-    friends.data.next_cursor
-  );
+  getTweetsAll(person, friends.data.users, friends.data.next_cursor);
   acc = [...acc, ...friends.data.users];
   if (friends.data.next_cursor) {
     return getAllFollowing(person, throttle, friends.data.next_cursor_str, acc);
@@ -150,8 +145,7 @@ export const addToList = async person => {
 
   const bulkAdd = await Promise.all(
     lists.map(l => {
-      // ********* Change chunking to 100
-      const membersChunked = chunk(membersByList[l], 1);
+      const membersChunked = chunk(membersByList[l], 100);
       return Promise.all(
         membersChunked.map(async members => {
           return throttleDefault(async () => {

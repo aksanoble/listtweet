@@ -5,6 +5,7 @@ import styles from "./header.module.css";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import Router from "next/router";
+import Loading from "./loading";
 
 const fetchData = async () => {
   const res = await fetch("/api/classify");
@@ -25,7 +26,9 @@ export default function Sort() {
       Router.push("/error");
     }
   };
-
+  if (status === "loading") {
+    return <Loading />;
+  }
   return (
     <>
       <Header />
@@ -115,11 +118,6 @@ export default function Sort() {
                 </div>
               </div>
             </>
-          )}
-          {status === "loading" && (
-            <p className="text-center mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              Loading...
-            </p>
           )}
         </div>
         <Footer />

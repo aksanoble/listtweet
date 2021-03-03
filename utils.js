@@ -22,7 +22,6 @@ export const addToClassifier = (person, tweets, listId) => {
   if (tweets.length > 0) {
     const user = tweets[0].user.screen_name;
     const bio = tweets[0].user.description;
-    console.log(`Adding to Classifier ${user} with ${listId}`);
     classifier.addDocument(bio, listId);
     tweets.forEach(t => {
       classifier.addDocument(tweetText(t), listId);
@@ -42,7 +41,6 @@ export const classify = (person, user, tweets) => {
     person.lists[classifiedList] = [];
   }
   person.lists[classifiedList].push(user);
-  console.log(`Classified as ${classifiedList} for user ${user}`);
 };
 
 export const processLists = person => {
@@ -92,7 +90,6 @@ export const createPerson = token => {
 export const getThrottle = (person, path, method) => {
   if (!get(person, `throttle.${path}.${method}`)) {
     const rateLimit = RATE_LIMITS[path][method];
-    console.log(`Initialising for person ${person.name}`);
     const throttleDefault = pThrottle({ limit: 1, interval: rateLimit });
     set(person, `throttle.${path}.${method}`, throttleDefault);
   }
