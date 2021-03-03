@@ -139,7 +139,6 @@ export default function Hero(props) {
               </div>
             </div>
           </div>
-          <Footer />
         </div>
       </div>
     </>
