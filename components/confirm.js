@@ -77,7 +77,7 @@ export default function Hero(props) {
 
           <div
             x-data="{ open: false }"
-            className="relative flex justify-center items-center py-20"
+            className="relative flex justify-center items-center"
           >
             <Header />
             <div
