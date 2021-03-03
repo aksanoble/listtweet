@@ -2,7 +2,7 @@ import Header from "../components/header";
 
 export default function Hero(props) {
   return (
-    <div className="relative h-screen flex items-center justify-center bg-gray-50 overflow-hidden">
+    <div className="relative h-screen flex items-center justify-center bg-gray-50 overflow-hidden pb-20 sm:pb-0">
       <div className="hidden sm:block sm:absolute sm:inset-y-0 sm:h-full sm:w-full">
         <div className="relative h-full max-w-screen-xl mx-auto">
           <svg
