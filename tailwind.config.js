@@ -4,7 +4,7 @@ module.exports = {
   theme: {
     extend: {
       padding: {
-        nav: "calc(4.5rem + 2px)"
+        nav: "0px"
       }
     }
   },

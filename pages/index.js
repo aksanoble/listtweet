@@ -35,7 +35,6 @@ export default function Page() {
           </Slide>
           <Slide>
             <ConfirmList onSignInClick={onSignInClick} />
-            <Footer />
           </Slide>
         </FullPage>
       </>

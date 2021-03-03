@@ -4,7 +4,7 @@ import Footer from "../components/footer";
 export default function Hero(props) {
   return (
     <>
-      <div className="relative pt-nav flex flex-col justify-between bg-gray-50">
+      <div className="relative h-screen flex flex-col justify-between bg-gray-50 pb-40">
         <div className="flex flex-col items-center justify-center flex-auto">
           <div className="hidden sm:block sm:absolute sm:inset-y-0 sm:h-full sm:w-full">
             <div className="relative h-full max-w-screen-xl mx-auto">
@@ -138,6 +138,9 @@ export default function Hero(props) {
                 </div>
               </div>
             </div>
+          </div>
+          <div className="mt-8 w-full absolute bg-white pb-10 bottom-0">
+            <Footer />
           </div>
         </div>
       </div>
