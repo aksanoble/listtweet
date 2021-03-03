@@ -34,3 +34,7 @@ iframe {
   border-radius: 0.5rem;
   filter: invert(1);
 }
+
+.h-confirm {
+  height: 70vh;
+}

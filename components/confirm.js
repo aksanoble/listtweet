@@ -4,7 +4,7 @@ import Footer from "../components/footer";
 export default function Hero(props) {
   return (
     <>
-      <div className="relative pt-nav flex flex-col justify-between h-screen bg-gray-50">
+      <div className="relative pt-nav flex flex-col justify-between bg-gray-50">
         <div className="flex items-center justify-center flex-auto">
           <div className="hidden sm:block sm:absolute sm:inset-y-0 sm:h-full sm:w-full">
             <div className="relative h-full max-w-screen-xl mx-auto">
@@ -77,7 +77,7 @@ export default function Hero(props) {
 
           <div
             x-data="{ open: false }"
-            className="relative pt-6 pb-12 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32"
+            className="relative flex justify-center items-center pt-6 pb-12 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32 h-confirm"
           >
             <Header />
             <div
