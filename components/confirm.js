@@ -4,7 +4,7 @@ import Footer from "../components/footer";
 export default function Hero(props) {
   return (
     <>
-      <div className="relative pt-nav flex flex-col justify-between h-screen bg-gray-50 overflow-hidden">
+      <div className="relative pt-nav flex flex-col justify-between h-screen bg-gray-50">
         <div className="flex items-center justify-center flex-auto">
           <div className="hidden sm:block sm:absolute sm:inset-y-0 sm:h-full sm:w-full">
             <div className="relative h-full max-w-screen-xl mx-auto">
@@ -116,7 +116,7 @@ export default function Hero(props) {
               </div>
             </div>
 
-            <div className="mt-10 mx-auto max-w-screen-xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 xl:mt-28">
+            <div className="mt-10 mx-auto z-0 max-w-screen-xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 xl:mt-28">
               <div className="text-center">
                 <h2 className="text-4xl tracking-tight leading-10 font-extrabold text-gray-900 sm:text-5xl sm:leading-none md:text-6xl">
                   Step 2 : Seed each List with an account
