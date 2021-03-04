@@ -33,7 +33,7 @@ export default function Sort() {
     <>
       <Header />
       <div className="pt-nav flex flex-col justify-between min-h-screen bg-white overflow-hidden">
-        <div className="w-full flex item-center justify-center pt-4">
+        <div className="w-full flex item-center justify-center pt-4 mt-24">
           <div className="bg-white rounded-full flex justify-center overflow-hidden shadow-sm w-auto rounded-lg">
             <div className="px-6 py-2">
               <div className="flex flex-row  items-center">
