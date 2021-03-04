@@ -13,6 +13,7 @@ export const listTweets = async person => {
         const res = await T.get(`lists/statuses`, {
           list_id: l.id_str,
           owner_screen_name: ownerScreenName,
+          count: 200,
           tweet_mode: "extended",
           include_rts: false
         });
