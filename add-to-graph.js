@@ -1,7 +1,8 @@
-import { driver as _driver, auth, session as _session } from "neo4j-driver";
+import neo4j from "neo4j-driver";
+const { driver: _driver, auth, session: _session } = neo4j;
 import dotenv from "dotenv";
 dotenv.config({
-  path: "/Users/medha/projects/twitter-declassify/.env.local"
+  path: "./.env.local"
 });
 import Twit from "twit";
 import { getAllFollowing } from "./queries.js";
