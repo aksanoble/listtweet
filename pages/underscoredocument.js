@@ -11,7 +11,7 @@ class MyDocument extends Document {
                   accessToken: '${process.env.NEXT_PUBLIC_ROLLBAR_TOKEN}',
                   captureUncaught: true,
                   payload: {
-                    environment: "production"
+                    environment: '${process.env.NODE_ENV}'
                 },            
                   captureUnhandledRejections: true,
               };

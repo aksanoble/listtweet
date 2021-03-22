@@ -1,5 +1,6 @@
 import neo4j from "neo4j-driver";
 const { driver: _driver, auth, session: _session } = neo4j;
+import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config({
   path: "./.env.local"
@@ -7,6 +8,9 @@ dotenv.config({
 import Twit from "twit";
 import { getAllFollowing } from "./queries.js";
 
+const getAccountsQuery = `match (n: Account)-[r:FOLLOWS]->(p) return n, r, p`;
+// const getAccountsQuery = `MATCH ()-[r:FOLLOWS]->(n) WITH  n, count(r) as cnt WHERE cnt>1 return n`;
+// const getAccountsQuery = `match (n: Account {screenName: "aksanoble"})-[r]-(p) return n,r,p`;
 const person = {
   tClient: new Twit({
     consumer_key: process.env.TWITTER_ID,
@@ -23,10 +27,10 @@ const person = {
 //   json: JSON.stringify(u)
 // }));
 
-const driver = _driver(
-  "bolt://localhost",
-  auth.basic(process.env.NEO_USER, process.env.NEO_PASS)
-);
+// const driver = _driver(
+//   "bolt://localhost",
+//   auth.basic(process.env.NEO_USER, process.env.NEO_PASS)
+// );
 
 const runCypher = async (command, params) => {
   var session = driver.session({
@@ -67,12 +71,42 @@ const addAccountCypher = account => {
 };
 
 export const addToGraph = acc => {
-  console.log(`Adding to Graph ${acc.name}`);
-  runCypher(addAccountCypher(acc), acc).then(async data => {
-    data.records.forEach(r => {
-      // console.log(`${r.get("a")} added to Graph`);
-    });
-  });
+  // console.log(`Adding to Graph ${acc.name}`);
+  // runCypher(addAccountCypher(acc), acc).then(async data => {
+  //   data.records.forEach(r => {
+  //     // console.log(`${r.get("a")} added to Graph`);
+  //   });
+  // });
 };
 
-getAllFollowing(person);
+// getAllFollowing(person);
+
+runCypher(getAccountsQuery)
+  .then(resp => {
+    const records = resp.records.reduce((acc, r) => {
+      acc[r.get("n").properties.screenName] = r.get("n");
+      acc[r.get("p").properties.screenName] = r.get("p");
+      // acc.links.push({
+      //   source: acc.nodes[r.get("r").start.low].properties.screenName,
+      //   target: acc.nodes[r.get("r").end.low].properties.screenName
+      // });
+      return acc;
+    }, {});
+    // records.nodes = Object.values(records.nodes).map(node => ({
+    //   id: node.properties.screenName
+    // }));
+    fs.writeFileSync("./data-map-v8.json", JSON.stringify(records));
+    console.log("Done writing");
+  })
+  .catch(e => {
+    console.log("There was an error in reading graph", e);
+  });
+
+// const data = fs.readFileSync("./data.json", "utf-8");
+
+// console.log(
+//   data
+//     .trim()
+//     .split("\n")
+//     .map(s => JSON.parse(s))[0]
+// );

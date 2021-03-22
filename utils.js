@@ -2,7 +2,6 @@ import { values, groupBy, maxBy, isEmpty, get, set, mapValues } from "lodash";
 import pThrottle from "p-throttle";
 import natural from "natural";
 import sendMail from "./sendmail";
-import { getListMembers } from "./queries";
 import { listTweets } from "./stages/listStatus";
 import EmailTmplInvalid from "./emailTemplates/email-template-invalid";
 import logger from "./logger";
