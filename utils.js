@@ -80,6 +80,7 @@ export const createPerson = token => {
   return {
     ...token,
     screen_name: token.screenName,
+    id_str: token.id,
     classifier,
     tClient,
     lists: {},

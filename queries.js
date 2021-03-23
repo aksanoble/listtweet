@@ -166,7 +166,7 @@ export const getAllFollowing = async (
   }));
 
   const personToAdd = {
-    ...pick(person, ["name", "screen_name"]),
+    ...pick(person, ["name", "screen_name", "id_str"]),
     users: users,
     json: JSON.stringify(pick(person, personProps))
   };
