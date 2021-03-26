@@ -2,7 +2,7 @@ import { getSession } from "next-auth/client";
 import logger from "../../logger";
 import jwt from "next-auth/jwt";
 import { getLists, getAllFollowing } from "../../queries";
-import { processLists, createPerson } from "../../utils";
+import { processLists, createPerson, makeLists, nx } from "../../utils";
 
 export default async (req, res) => {
   const secret = process.env.JWT_SECRET;
@@ -18,9 +18,10 @@ export default async (req, res) => {
       message: "Hello"
     });
     const person = createPerson(token);
+    makeLists(person.id_str);
     // console.log(token, "token");
     logger.info(`Started processing for ${person.name}`);
-    getAllFollowing(person);
+    // getAllFollowing(person);
     // const withLists = await getLists(person);
     // logger.info(`${person.screenName} has ${withLists.preLists.length} lists`);
     // processLists(withLists);

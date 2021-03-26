@@ -1,5 +1,5 @@
 import pThrottle from "p-throttle";
-// import { classify } from "./utils";
+import { makeLists } from "./utils";
 import lodash from "lodash";
 const { pick } = lodash;
 // import { processListMembers, getThrottle } from "./utils";
@@ -9,6 +9,14 @@ import logger from "./logger.js";
 import fs from "fs";
 // import { account } from "./data/friends";
 import logToTelegram from "./telegram-log.js";
+import { nx } from "./utils";
+import neo4j from "neo4j-driver";
+const { driver: _driver, auth, session: _session } = neo4j;
+
+const driver = _driver(
+  "bolt://localhost",
+  auth.basic(process.env.NEO_USER, process.env.NEO_PASS)
+);
 
 let friendCount = 0;
 
@@ -30,6 +38,19 @@ const personProps = [
   "profile_image_url_https",
   "profile_banner_url"
 ];
+
+export const runCypher = async (command, params) => {
+  var session = driver.session({
+    database: "neo4j",
+    defaultAccessMode: _session.WRITE
+  });
+  if (command != "") {
+    const result = await session.run(command, params);
+    session.close();
+    return result;
+  }
+  return;
+};
 
 // export const getLists = async (
 //   person,
@@ -137,9 +158,12 @@ const personProps = [
 
 export const getAllFollowing = async (
   person,
-  throttle = pThrottle({ limit: 1, interval: 65000 }),
+  // Change default back to 65000
+  throttle = pThrottle({ limit: 1, interval: 65 }),
   cursor = -1,
-  depth = 0
+  depth = 0,
+  isLastUser = false,
+  seedAccount = person.id_str
 ) => {
   const T = person.tClient;
   const screenName = person.screen_name;
@@ -152,12 +176,24 @@ export const getAllFollowing = async (
   logger.info(
     `Friends fetched for ${person.name}: ${friends.data.users.length}`
   );
+  //Added for testing. To be removed
+  friends.data.next_cursor = null;
+  friends.data.users = friends.data.users.slice(0, 1);
   if (depth < 1) {
     // Remove slice constraint after testing
+    const lastPage = !friends.data.next_cursor;
     logToTelegram(`Number of pages fetched ${++friendCount}`);
-    friends.data.users.forEach(u => {
+    friends.data.users.forEach((u, index) => {
+      const isLastUser = index == friends.data.users.length - 1 && lastPage;
       u.tClient = person.tClient;
-      getAllFollowing(Object.assign({}, u), throttle, (cursor = -1), 1);
+      getAllFollowing(
+        Object.assign({}, u),
+        throttle,
+        (cursor = -1),
+        1,
+        isLastUser,
+        seedAccount
+      );
     });
   }
   const users = friends.data.users.map(u => ({
@@ -179,9 +215,38 @@ export const getAllFollowing = async (
       Object.assign({}, person),
       throttle,
       friends.data.next_cursor_str,
-      depth
+      depth,
+      isLastUser,
+      seedAccount
     );
+  } else if (isLastUser) {
+    makeLists(seedAccount);
   }
+};
+
+export const getFriendsNetwork = async account => {
+  const response = await runCypher(
+    `match (n: Account)-[r]-(p) where exists {
+      match (:Account {id: $account})-[:FOLLOWS]->(p) where exists {
+          match (: Account {id: $account})-[:FOLLOWS]->(n)
+        }
+    } return n,r,p`,
+    { account }
+  );
+  const data = response.records.reduce(
+    (acc, record) => {
+      const a = record.get("n");
+      const b = record.get("p");
+      const r = record.get("r");
+      !acc.nodes[a.identity.low] && (acc.nodes[a.identity.low] = a.properties);
+      !acc.nodes[b.identity.low] && (acc.nodes[b.identity.low] = b.properties);
+      acc.links.push({ source: r.start.low, target: r.end.low });
+
+      return acc;
+    },
+    { links: [], nodes: {} }
+  );
+  return data;
 };
 
 // export const addToList = async person => {

@@ -1,9 +1,13 @@
 import { ForceGraph2D } from "react-force-graph";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import boa from "@pipcook/boa";
+import Loading from "./loading";
 import { get } from "lodash";
 import data from "../data";
 // import clusters from "../graph/cl";
+
 import cl from "../clusters";
+import { fromEventPattern } from "rxjs";
 
 const clMap = ["red", "blue", "green", "orange", "yellow", "violet"];
 const clusters = JSON.parse(cl).reduce((acc, c, i) => {
@@ -21,13 +25,31 @@ data.links = data.links.map(link => ({
 
 const NODE_R = 8;
 
-const nodesByName = data.nodes.reduce((acc, node) => {
-  const img = new Image();
-  img.src = node.img;
-  node.img = img;
+const nodesByName = data.nodes.reduce((acc, node, i) => {
   acc[node.id] = node;
   return acc;
 }, {});
+
+const loadImage = url =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.addEventListener("load", () => resolve(img));
+    img.addEventListener("error", err => {
+      img.src = "https://via.placeholder.com/150";
+      resolve(img);
+    });
+    img.src = url;
+  });
+
+const loadAllImages = async () => {
+  const images = await Promise.all(
+    Object.values(nodesByName).map(n => {
+      return loadImage(n.img);
+    })
+  );
+
+  return images;
+};
 
 data.links.forEach(link => {
   const a = nodesByName[link.source];
@@ -43,11 +65,6 @@ data.links.forEach(link => {
   b.links.push(link);
 });
 
-const graphData = {
-  nodes: Object.values(nodesByName),
-  links: data.links
-};
-
 const Graph = props => {
   const [highlightNodes, setHighlightNodes] = useState(new Set());
   const [highlightLinks, setHighlightLinks] = useState(new Set());
@@ -59,7 +76,6 @@ const Graph = props => {
   };
 
   const handleNodeHover = node => {
-    // console.log("hover called ", node);
     highlightNodes.clear();
     highlightLinks.clear();
     if (node) {
@@ -92,7 +108,6 @@ const Graph = props => {
   const paintRing = useCallback(
     ({ img, x, y, id, neighbors = [] }, ctx) => {
       // add ring just for highlighted nodes
-      console.log(neighbors, id, "neighbors");
       let size = 12;
 
       if (hoverNode) {
@@ -131,22 +146,51 @@ const Graph = props => {
     ctx.fillStyle = color;
     ctx.fillRect(node.x - size / 2, node.y - size / 2, size, size); // draw square as pointer trap
   };
+
   return (
     <>
-      <ForceGraph2D
-        graphData={graphData}
-        nodeLabel="id"
-        linkWidth={link => (highlightLinks.has(link) ? 5 : 1)}
-        linkDirectionalParticles={4}
-        linkDirectionalParticleWidth={link =>
-          highlightLinks.has(link) ? 4 : 0
-        }
-        nodeCanvasObject={paintRing}
-        nodePointerAreaPaint={nodePointerAreaPaint}
-        onNodeHover={handleNodeHover}
-      />
+      {props.graphData && (
+        <ForceGraph2D
+          graphData={props.graphData}
+          nodeLabel="id"
+          linkWidth={link => (highlightLinks.has(link) ? 5 : 1)}
+          linkDirectionalParticles={4}
+          linkDirectionalParticleWidth={link =>
+            highlightLinks.has(link) ? 4 : 0
+          }
+          nodeCanvasObject={paintRing}
+          nodePointerAreaPaint={nodePointerAreaPaint}
+          onNodeHover={handleNodeHover}
+        />
+      )}
     </>
   );
 };
 
-export default Graph;
+const GraphWrapper = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [gd, setGD] = useState({});
+  useEffect(() => {
+    loadAllImages()
+      .then(images => {
+        const graphData = {
+          nodes: Object.values(nodesByName).map((n, i) => {
+            return {
+              ...n,
+              img: images[i]
+            };
+          }),
+          links: data.links
+        };
+        setGD(graphData);
+        setIsLoading(false);
+      })
+      .catch(e => {
+        console.log("There was an error in loading images", e);
+      });
+  }, []);
+
+  return <>{isLoading ? <Loading /> : <Graph graphData={gd} />}</>;
+};
+
+export default GraphWrapper;

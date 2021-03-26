@@ -1,10 +1,25 @@
-import { values, groupBy, maxBy, isEmpty, get, set, mapValues } from "lodash";
+import {
+  values,
+  groupBy,
+  maxBy,
+  isEmpty,
+  get,
+  set as _set,
+  mapValues
+} from "lodash";
 import pThrottle from "p-throttle";
 import natural from "natural";
 import sendMail from "./sendmail";
 import { listTweets } from "./stages/listStatus";
 import EmailTmplInvalid from "./emailTemplates/email-template-invalid";
+import data from "./data";
 import logger from "./logger";
+import boa from "@pipcook/boa";
+const { list } = boa.builtins();
+const networkx = boa.import("networkx");
+const json = boa.import("jsonpickle");
+import { getFriendsNetwork } from "./queries";
+import fs from "fs";
 
 import { RATE_LIMITS } from "./globals";
 import Twit from "twit";
@@ -76,7 +91,6 @@ export const createPerson = token => {
     access_token: token.accessToken,
     access_token_secret: token.refreshToken
   });
-
   return {
     ...token,
     screen_name: token.screenName,
@@ -92,7 +106,38 @@ export const getThrottle = (person, path, method) => {
   if (!get(person, `throttle.${path}.${method}`)) {
     const rateLimit = RATE_LIMITS[path][method];
     const throttleDefault = pThrottle({ limit: 1, interval: rateLimit });
-    set(person, `throttle.${path}.${method}`, throttleDefault);
+    _set(person, `throttle.${path}.${method}`, throttleDefault);
   }
   return person.throttle[path][method];
+};
+
+// Remove default seedAccount. Added for testing
+export const nx = d => {
+  const G = networkx.Graph();
+  // fs.writeFileSync("./test.json", JSON.stringify(data));
+  // console.log("Donw writing");
+  // G.add_nodes_from(data.nodes.map(m => m.id));
+  G.add_nodes_from(Object.keys(d.nodes).map(n => d.nodes[n].screenName));
+  G.add_edges_from(
+    d.links.map(l => [
+      String(d.nodes[l.source].screenName),
+      String(d.nodes[l.target].screenName)
+    ])
+  );
+  G.remove_nodes_from(list(networkx.isolates(G)));
+  // console.log(json.encode(list(networkx.isolates(G))));
+  console.log(G.number_of_nodes(), "Count of nodes");
+  console.log(G.number_of_edges(), "Count of edges");
+  // const GCon = networkx.algorithms.components.connected_components(G);
+  // console.log(networkx.is_connected(G), "is connected");
+  let cluster = list(
+    networkx.algorithms.community.asyn_fluid.asyn_fluidc(G, 6)
+  );
+  console.log(JSON.parse(json.encode(cluster)).map(c => c["py/set"]));
+};
+
+export const makeLists = async account => {
+  const graphData = await getFriendsNetwork(account);
+  // console.log(graphData, "GraphData");
+  const getClusters = nx(graphData);
 };

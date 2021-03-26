@@ -1,10 +1,9 @@
-import neo4j from "neo4j-driver";
-const { driver: _driver, auth, session: _session } = neo4j;
 import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config({
   path: "./.env.local"
 });
+import { runCypher } from "./queries";
 import Twit from "twit";
 import { getAllFollowing } from "./queries.js";
 
@@ -27,26 +26,13 @@ const person = {
 //   json: JSON.stringify(u)
 // }));
 
-const driver = _driver(
-  "bolt://localhost",
-  auth.basic(process.env.NEO_USER, process.env.NEO_PASS)
-);
-
-const runCypher = async (command, params) => {
-  var session = driver.session({
-    database: "neo4j",
-    defaultAccessMode: _session.WRITE
-  });
-  if (command != "") {
-    const result = await session.run(command, params);
-    session.close();
-    return result;
-  }
-  return;
-};
+// const driver = _driver(
+//   "bolt://localhost",
+//   auth.basic(process.env.NEO_USER, process.env.NEO_PASS)
+// );
 
 const addAccountCypher = account => {
-  console.log(account.users[0], "user");
+  // console.log(account.users[0], "user");
   if (!account) {
     console.error("No name found in Crawl", account);
     return "";
@@ -75,7 +61,7 @@ export const addToGraph = acc => {
   console.log(`Adding to Graph ${acc.name}`);
   runCypher(addAccountCypher(acc), acc).then(async data => {
     data.records.forEach(r => {
-      console.log(`${r.get("a")} added to Graph`);
+      // console.log(`${r.get("a")} added to Graph`);
     });
   });
 };
