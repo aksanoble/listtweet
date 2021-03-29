@@ -1,4 +1,7 @@
 ListTweet
 
 Uses Boa for working with Python modules.
-Depends on networkx, jsonpickle
+
+./node_modules/.bin/bip install <package-name>
+
+Depends on networkx, jsonpickle, community_louvain

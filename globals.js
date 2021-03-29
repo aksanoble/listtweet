@@ -6,3 +6,5 @@ export const RATE_LIMITS = {
     post: 65000
   }
 };
+
+export const DISTINCT_LIST = "listtweet-distinct";

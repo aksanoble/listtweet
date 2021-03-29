@@ -1,5 +1,6 @@
 import pThrottle from "p-throttle";
 import { makeLists } from "./utils";
+import { DISTINCT_LIST } from "./globals";
 import lodash from "lodash";
 const { pick } = lodash;
 // import { processListMembers, getThrottle } from "./utils";
@@ -224,7 +225,7 @@ export const getAllFollowing = async (
   }
 };
 
-export const getFriendsNetwork = async account => {
+export const getConnectedFriends = async account => {
   const response = await runCypher(
     `match (n: Account)-[r]-(p) where exists {
       match (:Account {id: $account})-[:FOLLOWS]->(p) where exists {
@@ -246,6 +247,23 @@ export const getFriendsNetwork = async account => {
     },
     { links: [], nodes: {} }
   );
+  return data;
+};
+
+export const makeDistinctList = async account => {
+  const response = await runCypher(
+    `match (n: Account)-[r]-(p) where exists {
+      match (:Account {id: $account})-[:FOLLOWS]->(p) where exists {
+        match (: Account {id: $account})-[:FOLLOWS]->(n)
+      }
+    } with collect (distinct n) as faccounts
+    match (n: Account {id: $account})-[:FOLLOWS]->(p) with p
+    where not p in faccounts with p
+    match(p) set p.list = '${DISTINCT_LIST}'
+    return p`,
+    { account }
+  );
+  const data = response.records;
   return data;
 };
 

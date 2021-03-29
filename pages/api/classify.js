@@ -18,9 +18,9 @@ export default async (req, res) => {
       message: "Hello"
     });
     const person = createPerson(token);
+    logger.info(`Started processing for ${person.name}`);
     makeLists(person.id_str);
     // console.log(token, "token");
-    logger.info(`Started processing for ${person.name}`);
     // getAllFollowing(person);
     // const withLists = await getLists(person);
     // logger.info(`${person.screenName} has ${withLists.preLists.length} lists`);
