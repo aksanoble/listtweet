@@ -21,7 +21,7 @@ const { list, dict } = boa.builtins();
 const networkx = boa.import("networkx");
 const json = boa.import("jsonpickle");
 const louvain = boa.import("community");
-import { getConnectedFriends, makeDistinctList } from "./queries";
+import { getConnectedFriends, makeDistinctList, writeListDB } from "./queries";
 import fs from "fs";
 
 import { RATE_LIMITS } from "./globals";
@@ -121,7 +121,7 @@ export const getThrottle = (person, path, method) => {
 
 export const nx = d => {
   const G = networkx.Graph();
-  fs.writeFileSync("./test.json", JSON.stringify(d));
+  // fs.writeFileSync("./test.json", JSON.stringify(d));
   G.add_nodes_from(Object.keys(d.nodes));
   G.add_edges_from(d.links.map(l => [String(l.source), String(l.target)]));
   console.log(G.number_of_nodes(), "Count of nodes");
@@ -162,11 +162,13 @@ const getClusters = (G, d) => {
     const others = clusters.splice(5);
     clusterCenter["listtweet-others"] = union(...others);
   }
+  console.log(clusterCenter, "pre-reduce");
   clusterCenter = clusters.reduce((acc, c) => {
     const centerNode = maxBy(c, n => j(list(G.neighbors(n))).length);
     acc[`listtweet-${d.nodes[centerNode].screenName}-cluster`] = c;
     return acc;
   }, clusterCenter);
-  console.log("Louvain CLusters", clusterCenter);
-  // Change this to 10, Set to 1 for testing
+
+  console.log(clusterCenter, "post-reduce");
+  writeListDB(clusterCenter);
 };

@@ -267,6 +267,26 @@ export const makeDistinctList = async account => {
   return data;
 };
 
+export const writeListDB = async clusters => {
+  let clusterPairs = {
+    clusters: Object.entries(clusters).map(c => ({
+      list: c[0],
+      nodes: c[1].map(n => Number(n))
+    }))
+  };
+
+  console.log(clusterPairs, "clusterPairs");
+  const response = await runCypher(
+    `unwind $clusters as cluster
+    unwind cluster.nodes as n
+    match (p: Account) where ID(p) = n set p.list = cluster.list
+    return count(p)`,
+    clusterPairs
+  );
+
+  console.log(response, "response");
+};
+
 // export const addToList = async person => {
 //   const T = person.tClient;
 //   const membersByList = person.lists;
