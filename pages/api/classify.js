@@ -1,7 +1,7 @@
 import { getSession } from "next-auth/client";
 import logger from "../../logger";
 import jwt from "next-auth/jwt";
-import { getLists, getAllFollowing } from "../../queries";
+import { getLists, getAllFollowing, createLists } from "../../queries";
 import { processLists, createPerson, makeLists, nx } from "../../utils";
 
 export default async (req, res) => {
@@ -19,7 +19,7 @@ export default async (req, res) => {
     });
     const person = createPerson(token);
     logger.info(`Started processing for ${person.name}`);
-    makeLists(person.id_str);
+    createLists(person);
     // console.log(token, "token");
     // getAllFollowing(person);
     // const withLists = await getLists(person);

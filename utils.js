@@ -92,7 +92,6 @@ export const processListMembers = person => {
 };
 
 export const createPerson = token => {
-  const classifier = new natural.BayesClassifier();
   const tClient = new Twit({
     consumer_key: process.env.TWITTER_ID,
     consumer_secret: process.env.TWITTER_SECRET,
@@ -103,7 +102,6 @@ export const createPerson = token => {
     ...token,
     screen_name: token.screenName,
     id_str: token.id,
-    classifier,
     tClient,
     lists: {},
     throttle: {}
@@ -119,7 +117,7 @@ export const getThrottle = (person, path, method) => {
   return person.throttle[path][method];
 };
 
-export const nx = d => {
+export const nx = (d, account) => {
   const G = networkx.Graph();
   // fs.writeFileSync("./test.json", JSON.stringify(d));
   G.add_nodes_from(Object.keys(d.nodes));
@@ -128,7 +126,7 @@ export const nx = d => {
   console.log(G.number_of_edges(), "Count of edges");
   // G.remove_nodes_from(list(networkx.isolates(G)));
 
-  getClusters(G, d);
+  getClusters(G, d, account);
   // const GCon = networkx.algorithms.components.connected_components(G);
   // const clusters = j(
   //   list(networkx.algorithms.community.asyn_fluid.asyn_fluidc(G, 6))
@@ -142,12 +140,12 @@ export const nx = d => {
 };
 
 export const makeLists = async account => {
-  const connectedFriends = await getConnectedFriends(account);
+  const connectedFriends = await getConnectedFriends(account.id_str);
   // const distinctFriends = await makeDistinctList(account);
-  const getClusters = nx(connectedFriends);
+  const getClusters = nx(connectedFriends, account);
 };
 
-const getClusters = (G, d) => {
+const getClusters = (G, d, account) => {
   let nodesClusterMap = j(louvain.best_partition(G));
   let clusters = orderBy(
     Object.values(
@@ -165,10 +163,10 @@ const getClusters = (G, d) => {
   console.log(clusterCenter, "pre-reduce");
   clusterCenter = clusters.reduce((acc, c) => {
     const centerNode = maxBy(c, n => j(list(G.neighbors(n))).length);
-    acc[`listtweet-${d.nodes[centerNode].screenName}-cluster`] = c;
+    acc[`listtweet-${d.nodes[centerNode].screenName}`] = c;
     return acc;
   }, clusterCenter);
 
   console.log(clusterCenter, "post-reduce");
-  writeListDB(clusterCenter);
+  writeListDB(clusterCenter, account);
 };

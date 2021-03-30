@@ -4,6 +4,9 @@ export const RATE_LIMITS = {
   },
   "lists/members/create_all": {
     post: 65000
+  },
+  "lists/create": {
+    post: 65
   }
 };
 

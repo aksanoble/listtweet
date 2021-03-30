@@ -3,7 +3,7 @@ import { makeLists } from "./utils";
 import { DISTINCT_LIST } from "./globals";
 import lodash from "lodash";
 const { pick } = lodash;
-// import { processListMembers, getThrottle } from "./utils";
+import { processListMembers, getThrottle } from "./utils";
 import { addToGraph } from "./add-to-graph.js";
 // import EmailTemplate from "./emailTemplates/email-template-html";
 import logger from "./logger.js";
@@ -267,7 +267,7 @@ export const makeDistinctList = async account => {
   return data;
 };
 
-export const writeListDB = async clusters => {
+export const writeListDB = async (clusters, account) => {
   let clusterPairs = {
     clusters: Object.entries(clusters).map(c => ({
       list: c[0],
@@ -275,18 +275,45 @@ export const writeListDB = async clusters => {
     }))
   };
 
-  console.log(clusterPairs, "clusterPairs");
   const response = await runCypher(
     `unwind $clusters as cluster
     unwind cluster.nodes as n
-    match (p: Account) where ID(p) = n set p.list = cluster.list
+    match (:Account {id: $account})-[r:FOLLOWS]->(p: Account) where ID(p) = n set r.list = cluster.list
     return count(p)`,
-    clusterPairs
+    { clusters: clusterPairs.clusters, account: account.id_str }
   );
-
-  console.log(response, "response");
+  createLists(account);
 };
 
+export const createLists = async account => {
+  const T = account.tClient;
+  const throttleDefault = getThrottle(account, "lists/create", "post");
+  const response = await runCypher(
+    `
+  match (:Account {id: $account})-[r:FOLLOWS]->() return distinct(r.list) as list
+  `,
+    { account: account.id_str }
+  );
+
+  const lists = response.records
+    .map(r => {
+      return r.get("list");
+    })
+    .filter(l => !!l);
+
+  let createLists = await Promise.all(
+    lists.map(l => {
+      return throttleDefault(() => {
+        return T.post(`lists/create`, {
+          name: l,
+          mode: "private"
+        });
+      })();
+    })
+  );
+
+  console.log(createLists, "createLists");
+};
 // export const addToList = async person => {
 //   const T = person.tClient;
 //   const membersByList = person.lists;
