@@ -141,7 +141,7 @@ export const nx = (d, account) => {
 
 export const makeLists = async account => {
   const connectedFriends = await getConnectedFriends(account.id_str);
-  // const distinctFriends = await makeDistinctList(account);
+  const distinctFriends = await makeDistinctList(account.id_str);
   const getClusters = nx(connectedFriends, account);
 };
 

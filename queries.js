@@ -2,7 +2,7 @@ import pThrottle from "p-throttle";
 import { makeLists } from "./utils";
 import { DISTINCT_LIST } from "./globals";
 import lodash from "lodash";
-const { pick } = lodash;
+const { pick, chunk, mapValues } = lodash;
 import { processListMembers, getThrottle } from "./utils";
 import { addToGraph } from "./add-to-graph.js";
 // import EmailTemplate from "./emailTemplates/email-template-html";
@@ -257,9 +257,9 @@ export const makeDistinctList = async account => {
         match (: Account {id: $account})-[:FOLLOWS]->(n)
       }
     } with collect (distinct n) as faccounts
-    match (n: Account {id: $account})-[:FOLLOWS]->(p) with p
+    match (n: Account {id: $account})-[r:FOLLOWS]->(p) with p
     where not p in faccounts with p
-    match(p) set p.list = '${DISTINCT_LIST}'
+    match(p)<-[r:FOLLOWS]-(:Account {id: $account}) set r.list = '${DISTINCT_LIST}'
     return p`,
     { account }
   );
@@ -295,7 +295,7 @@ export const createLists = async account => {
     { account: account.id_str }
   );
 
-  const lists = response.records
+  let lists = response.records
     .map(r => {
       return r.get("list");
     })
@@ -312,40 +312,73 @@ export const createLists = async account => {
     })
   );
 
-  console.log(createLists, "createLists");
+  lists = lists.map((l, i) => ({ id: createLists[i].data.id_str, name: l }));
+  updateListIds(account, lists);
+  // addToList(account);
 };
-// export const addToList = async person => {
-//   const T = person.tClient;
-//   const membersByList = person.lists;
-//   const lists = Object.keys(membersByList);
+export const addToList = async person => {
+  console.log("adding members to list");
+  const membersByList = await getListMembers(person);
+  const T = person.tClient;
+  const lists = Object.keys(membersByList);
+  const throttleDefault = getThrottle(
+    person,
+    "lists/members/create_all",
+    "post"
+  );
+  const bulkAdd = await Promise.all(
+    lists.map(l => {
+      const membersChunked = chunk(membersByList[l], 100);
+      return Promise.all(
+        membersChunked.map(async members => {
+          return throttleDefault(async () => {
+            await T.post(`lists/members/create_all`, {
+              screen_name: members,
+              list_id: l,
+              owner_screen_name: person.screenName
+            });
+          })();
+        })
+      );
+    })
+  );
+  logger.info(
+    `Final lists for ${person.screenName} : ${JSON.stringify(
+      mapValues(person.lists, members => members.length)
+    )}`
+  );
+  // sendMail(person, <EmailTemplate {...person} />);
+  console.log("Done adding members to list");
+};
 
-//   const throttleDefault = getThrottle(
-//     person,
-//     "lists/members/create_all",
-//     "post"
-//   );
+export const getListMembers = async account => {
+  console.log("Getting list memebers");
+  const response = await runCypher(
+    `
+    match (:Account {id: $id})-[r:FOLLOWS]->(q) return collect(q) as q, r.listId as list
+  `,
+    { id: account.id_str }
+  );
 
-//   const bulkAdd = await Promise.all(
-//     lists.map(l => {
-//       const membersChunked = chunk(membersByList[l], 100);
-//       return Promise.all(
-//         membersChunked.map(async members => {
-//           return throttleDefault(async () => {
-//             await T.post(`lists/members/create_all`, {
-//               screen_name: members,
-//               list_id: l,
-//               owner_screen_name: person.screenName
-//             });
-//           })();
-//         })
-//       );
-//     })
-//   );
-//   logger.info(
-//     `Final lists for ${person.screenName} : ${JSON.stringify(
-//       mapValues(person.lists, members => members.length)
-//     )}`
-//   );
-//   sendMail(person, <EmailTemplate {...person} />);
-//   console.log("Done adding members to list");
-// };
+  const listMembers = response.records.reduce((acc, r) => {
+    const list = r.get("list");
+    const nodes = r.get("q");
+    acc[list] = nodes.map(n => n.properties.screenName);
+    return acc;
+  }, {});
+
+  return listMembers;
+};
+
+export const updateListIds = async (account, lists) => {
+  const response = await runCypher(
+    `
+  unwind $lists as l
+  match (:Account {id: $id})-[r:FOLLOWS {list: l.name}]->(p: Account) set r.listId = l.id
+  return count(l)
+  `,
+    { id: account.id_str, lists }
+  );
+
+  console.log("Updated Lists with Ids", response.records);
+};

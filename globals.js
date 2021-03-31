@@ -3,7 +3,7 @@ export const RATE_LIMITS = {
     get: 1500
   },
   "lists/members/create_all": {
-    post: 65000
+    post: 600
   },
   "lists/create": {
     post: 65
