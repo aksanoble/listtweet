@@ -5,13 +5,14 @@ import lodash from "lodash";
 const { pick, chunk, mapValues } = lodash;
 import { processListMembers, getThrottle } from "./utils";
 import { addToGraph } from "./add-to-graph.js";
-// import EmailTemplate from "./emailTemplates/email-template-html";
+import EmailTemplate from "./emailTemplates/email-template-html";
 import logger from "./logger.js";
 import fs from "fs";
 // import { account } from "./data/friends";
 import logToTelegram from "./telegram-log.js";
 import { nx } from "./utils";
 import neo4j from "neo4j-driver";
+import sendMail from "./sendmail";
 const { driver: _driver, auth, session: _session } = neo4j;
 
 const driver = _driver(
@@ -20,8 +21,6 @@ const driver = _driver(
 );
 
 let friendCount = 0;
-
-// import sendMail from "./sendmail";
 
 const personProps = [
   "id_str",
@@ -152,7 +151,7 @@ export const runCypher = async (command, params) => {
 //   );
 //   if (!cursor) {
 //     console.log(`Done classifiying all tweets`);
-//     addToList(person);
+//     addMembersToList(person);
 //   }
 //   return tweets.flat();
 // };
@@ -164,7 +163,7 @@ export const getAllFollowing = async (
   cursor = -1,
   depth = 0,
   isLastUser = false,
-  seedAccount = person.id_str
+  seedAccount = person
 ) => {
   const T = person.tClient;
   const screenName = person.screen_name;
@@ -314,10 +313,8 @@ export const createLists = async account => {
 
   lists = lists.map((l, i) => ({ id: createLists[i].data.id_str, name: l }));
   updateListIds(account, lists);
-  // addToList(account);
 };
-export const addToList = async person => {
-  console.log("adding members to list");
+export const addMembersToList = async person => {
   const membersByList = await getListMembers(person);
   const T = person.tClient;
   const lists = Object.keys(membersByList);
@@ -328,7 +325,7 @@ export const addToList = async person => {
   );
   const bulkAdd = await Promise.all(
     lists.map(l => {
-      const membersChunked = chunk(membersByList[l], 100);
+      const membersChunked = chunk(membersByList[l].nodes, 100);
       return Promise.all(
         membersChunked.map(async members => {
           return throttleDefault(async () => {
@@ -343,11 +340,14 @@ export const addToList = async person => {
     })
   );
   logger.info(
-    `Final lists for ${person.screenName} : ${JSON.stringify(
-      mapValues(person.lists, members => members.length)
+    `Done creating lists for ${person.screenName} : ${JSON.stringify(
+      mapValues(membersByList, members => members.length)
     )}`
   );
-  // sendMail(person, <EmailTemplate {...person} />);
+
+  const emailProps = { person, lists: membersByList };
+
+  sendMail(person, <EmailTemplate {...emailProps} />);
   console.log("Done adding members to list");
 };
 
@@ -355,15 +355,16 @@ export const getListMembers = async account => {
   console.log("Getting list memebers");
   const response = await runCypher(
     `
-    match (:Account {id: $id})-[r:FOLLOWS]->(q) return collect(q) as q, r.listId as list
+    match (:Account {id: $id})-[r:FOLLOWS]->(q) return collect(q) as q, r.listId as listId, r.list as listName
   `,
     { id: account.id_str }
   );
 
   const listMembers = response.records.reduce((acc, r) => {
-    const list = r.get("list");
+    const list = r.get("listId");
+    const listName = r.get("listName");
     const nodes = r.get("q");
-    acc[list] = nodes.map(n => n.properties.screenName);
+    acc[list] = { nodes: nodes.map(n => n.properties.screenName), listName };
     return acc;
   }, {});
 
@@ -379,6 +380,7 @@ export const updateListIds = async (account, lists) => {
   `,
     { id: account.id_str, lists }
   );
+  addMembersToList(account);
 
   console.log("Updated Lists with Ids", response.records);
 };

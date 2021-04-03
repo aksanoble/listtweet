@@ -8,58 +8,45 @@ const getListsById = lists => {
 };
 
 const listDetails = lists => {
-  return lists.map((list, index) => {
-    if (list.memberCount > 0) {
+  return Object.keys(lists).map((listId, index) => {
+    const list = lists[listId];
+    console.log(list, "listdetails");
+    if (list.nodes.length > 0) {
       return (
         <p key={index}>
-          <a href={`https://twitter.com${list.uri}`}>{list.name}</a> {"-->"}{" "}
-          {list.memberCount}
+          <a href={`https://twitter.com/i/lists/${listId}`}>{list.listName}</a>{" "}
+          {"-->"} {list.nodes.length}
         </p>
       );
     }
-    return (
-      <p key={index}>
-        <a href={list.uri}>{list.name}</a>
-      </p>
-    );
   });
 };
 
 const EmailTemplate = props => {
-  const preLists = props.preLists;
-  const totalAccountsOrganised = Object.values(props.lists).flat().length;
+  const totalAccountsOrganised = Object.values(props.lists)
+    .map(l => l.nodes)
+    .flat().length;
   const lists = props.lists;
-  const memberLists = Object.keys(lists);
-  const listsById = getListsById(preLists);
-  const emptyLists = pullAll(Object.keys(listsById), memberLists).map(
-    l => listsById[l]
-  );
+  const listsById = Object.keys(lists);
   let emptyListReport = null;
-  const memberListReport = listDetails(
-    memberLists.map(l => {
-      return {
-        ...listsById[l],
-        memberCount: lists[l].length
-      };
-    })
-  );
-  if (emptyLists.length > 0) {
-    emptyListReport = (
-      <>
-        <p>
-          The following lists did not have any account in them and were ignored.
-        </p>
-        {listDetails(emptyLists)}
-      </>
-    );
-  }
+  const memberListReport = listDetails(lists);
+  // if (emptyLists.length > 0) {
+  //   emptyListReport = (
+  //     <>
+  //       <p>
+  //         The following lists did not have any account in them and were ignored.
+  //       </p>
+  //       {listDetails(emptyLists)}
+  //     </>
+  //   );
+  // }
 
   return (
     <>
-      <p>Dear {props.name}</p>
+      <p>Dear {props.person.name}</p>
       <p>
         Your{" "}
-        <a href={`https://twitter.com/${props.screenName}/lists`}>
+        <a href={`https://twitter.com/${props.person.screenName}/lists`}>
           Twitter Lists
         </a>{" "}
         are now ready.

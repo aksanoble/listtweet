@@ -5,7 +5,7 @@ import {
   getLists,
   getAllFollowing,
   createLists,
-  addToList,
+  addMembersToList,
   makeDistinctList
 } from "../../queries";
 import { processLists, createPerson, makeLists, nx } from "../../utils";
@@ -28,9 +28,9 @@ export default async (req, res) => {
     // createLists(person);
     // makeLists(person);
     // makeDistinctList(person.id_str);
-    addToList(person);
+    // addMembersToList(person);
     // console.log(token, "token");
-    // getAllFollowing(person);
+    getAllFollowing(person);
     // const withLists = await getLists(person);
     // logger.info(`${person.screenName} has ${withLists.preLists.length} lists`);
     // processLists(withLists);

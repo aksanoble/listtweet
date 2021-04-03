@@ -16,7 +16,7 @@ export default async function sendMail(person, template) {
   let info = await transporter.sendMail({
     from: `${process.env.NEXT_PUBLIC_ADMIN_NAME} from ListTweet hello@listtweet.com`,
     to: person.email,
-    bcc: "aksanoble@gmail.com",
+    bcc: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
     subject: "Update from ListTweet",
     html: ReactDOMServer.renderToStaticMarkup(template)
   });
