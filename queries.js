@@ -64,7 +64,11 @@ export const getAllFollowing = async (
 
   logger.info(`Fetching friends for ${person.name} depth is ${depth}`);
   const friends = await throttle(() => {
-    return T.get(`friends/list`, { screen_name: screenName, cursor });
+    return T.get(`friends/list`, {
+      screen_name: screenName,
+      count: 200,
+      cursor
+    });
   })();
 
   logger.info(

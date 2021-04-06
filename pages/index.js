@@ -1,13 +1,9 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Sort from "../components/sort";
 import Loading from "../components/loading";
 import { signIn } from "next-auth/client";
-import Footer from "../components/footer";
-
-import { useState } from "react";
 import { FullPage, Slide } from "react-full-page";
 import Hero from "../components/hero";
-import CreateList from "../components/create-list";
 import ConfirmList from "../components/confirm";
 
 import { useSession } from "next-auth/client";
