@@ -28,10 +28,7 @@ export default function Page() {
       <>
         <FullPage ref={fullPageRef}>
           <Slide>
-            <Hero fullPage={fullPageRef} />
-          </Slide>
-          <Slide>
-            <CreateList fullPage={fullPageRef} />
+            <Hero onSignInClick={onSignInClick} fullPage={fullPageRef} />
           </Slide>
           <Slide>
             <ConfirmList onSignInClick={onSignInClick} />

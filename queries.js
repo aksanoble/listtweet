@@ -3,14 +3,11 @@ import { makeLists } from "./utils";
 import { DISTINCT_LIST, COLORS } from "./globals";
 import lodash from "lodash";
 const { pick, chunk, mapValues, omit } = lodash;
-import { processListMembers, getThrottle } from "./utils";
+import { getThrottle } from "./utils";
 import { addToGraph } from "./add-to-graph.js";
 import EmailTemplate from "./emailTemplates/email-template-html";
 import logger from "./logger.js";
-import fs from "fs";
-// import { account } from "./data/friends";
 import logToTelegram from "./telegram-log.js";
-import { nx } from "./utils";
 import neo4j from "neo4j-driver";
 import sendMail from "./sendmail";
 const { driver: _driver, auth, session: _session } = neo4j;
@@ -108,10 +105,7 @@ export const getAllFollowing = async (
     users: users,
     json: JSON.stringify(pick(person, personProps))
   };
-  // fs.writeFileSync("./test.json", JSON.stringify(personToAdd));
   addToGraph(personToAdd);
-  // getTweetsAll(person, friends.data.users, friends.data.next_cursor);
-  // acc = [...acc, ...friends.data.users];
   if (friends.data.next_cursor) {
     getAllFollowing(
       Object.assign({}, person),
@@ -145,9 +139,7 @@ export const getConnectedFriends = async account => {
 
       acc.links.push({
         source: r.start.low,
-        target: r.end.low,
-        list: "helo",
-        listId: "world"
+        target: r.end.low
       });
 
       return acc;
@@ -336,6 +328,5 @@ export const getAllConnections = async account => {
     };
   });
 
-  fs.writeFileSync("test.json", JSON.stringify(data));
   return data;
 };
