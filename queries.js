@@ -1,8 +1,8 @@
 import pThrottle from "p-throttle";
 import { makeLists } from "./utils";
-import { DISTINCT_LIST } from "./globals";
+import { DISTINCT_LIST, COLORS } from "./globals";
 import lodash from "lodash";
-const { pick, chunk, mapValues } = lodash;
+const { pick, chunk, mapValues, omit } = lodash;
 import { processListMembers, getThrottle } from "./utils";
 import { addToGraph } from "./add-to-graph.js";
 import EmailTemplate from "./emailTemplates/email-template-html";
@@ -46,115 +46,12 @@ export const runCypher = async (command, params) => {
   });
   if (command != "") {
     const result = await session.run(command, params);
-    session.close();
+    await session.close();
     return result;
   }
+  await session.close();
   return;
 };
-
-// export const getLists = async (
-//   person,
-//   throttle = pThrottle({ limit: 1, interval: 65000 }),
-//   cursor = -1,
-//   acc = []
-// ) => {
-//   console.log(`Fetcing all Lists for ${person.name}`);
-//   const T = person.tClient;
-//   const ownerScreenName = person.screen_name;
-//   const lists = await throttle(() => {
-//     return T.get(`lists/ownerships`, {
-//       owner_screen_name: ownerScreenName,
-//       cursor
-//     });
-//   })();
-//   acc = [...acc, ...lists.data.lists];
-//   if (lists.data.next_cursor) {
-//     return getLists(person, throttle, lists.data.next_cursor_str, acc);
-//   }
-//   console.log(`Fetched all Lists for ${person.name}`);
-//   return {
-//     ...person,
-//     preLists: acc
-//   };
-// };
-
-// export const getListMembers = async person => {
-//   const lists = person.preLists;
-//   const throttleDefault = pThrottle({ limit: 1, interval: 1500 });
-//   const T = person.tClient;
-//   const ownerScreenName = person.screen_name;
-//   console.log(`Fetching all members of lists for ${person.name}`);
-//   let listMembers = await Promise.all(
-//     lists.map(l => {
-//       return throttleDefault(async () => {
-//         const res = await T.get(`lists/members`, {
-//           list_id: l.id_str,
-//           owner_screen_name: ownerScreenName
-//         });
-//         return res.data.users;
-//       })();
-//     })
-//   );
-
-//   const membersByList = listMembers.reduce((acc, current, index) => {
-//     acc[lists[index].id_str] = current;
-//     return acc;
-//   }, {});
-//   processListMembers({
-//     ...person,
-//     membersByList
-//   });
-// };
-
-// export const getAllTweetsList = async (person, lists) => {
-//   const throttleDefault = pThrottle({ limit: 1, interval: 1500 });
-//   const T = person.tClient;
-//   const ownerScreenName = person.screen_name;
-
-//   let tweetsByList = await Promise.all(
-//     lists.map(l => {
-//       return throttleDefault(async () => {
-//         const res = await T.get(
-//           `lists/members?list_id=${l.id}&owner_screen_name=${ownerScreenName}`
-//         );
-//         const tweets = await getTweetsAll(person, res.data.users);
-//         return {
-//           id: l.id,
-//           tweets
-//         };
-//       })();
-//     })
-//   );
-
-//   tweetsByList = tweetsByList.reduce((acc, byList) => {
-//     acc[byList.id] = byList.tweets;
-//     return acc;
-//   }, {});
-
-//   return tweetsByList;
-// };
-
-// export const getTweetsAll = async (person, users, cursor) => {
-//   const throttleDefault = getThrottle(person, "statuses/user_timeline", "get");
-//   const T = person.tClient;
-//   const tweets = await Promise.all(
-//     users.map(u => {
-//       return throttleDefault(async () => {
-//         const res = await T.get(`statuses/user_timeline`, {
-//           screen_name: u.screen_name,
-//           tweet_mode: "extended"
-//         });
-//         classify(person, u.screen_name, res.data);
-//         return res.data;
-//       })();
-//     })
-//   );
-//   if (!cursor) {
-//     console.log(`Done classifiying all tweets`);
-//     addMembersToList(person);
-//   }
-//   return tweets.flat();
-// };
 
 export const getAllFollowing = async (
   person,
@@ -202,7 +99,12 @@ export const getAllFollowing = async (
   }));
 
   const personToAdd = {
-    ...pick(person, ["name", "screen_name", "id_str"]),
+    ...pick(person, [
+      "name",
+      "screen_name",
+      "id_str",
+      "profile_image_url_https"
+    ]),
     users: users,
     json: JSON.stringify(pick(person, personProps))
   };
@@ -227,8 +129,8 @@ export const getAllFollowing = async (
 export const getConnectedFriends = async account => {
   const response = await runCypher(
     `match (n: Account)-[r]-(p) where exists {
-      match (:Account {id: $account})-[:FOLLOWS]->(p) where exists {
-          match (: Account {id: $account})-[:FOLLOWS]->(n)
+      match (:Account {id: $account})-[s:FOLLOWS]->(p) where exists {
+          match (: Account {id: $account})-[t:FOLLOWS]->(n)
         }
     } return n,r,p`,
     { account }
@@ -240,7 +142,13 @@ export const getConnectedFriends = async account => {
       const r = record.get("r");
       !acc.nodes[a.identity.low] && (acc.nodes[a.identity.low] = a.properties);
       !acc.nodes[b.identity.low] && (acc.nodes[b.identity.low] = b.properties);
-      acc.links.push({ source: r.start.low, target: r.end.low });
+
+      acc.links.push({
+        source: r.start.low,
+        target: r.end.low,
+        list: "helo",
+        listId: "world"
+      });
 
       return acc;
     },
@@ -383,4 +291,51 @@ export const updateListIds = async (account, lists) => {
   addMembersToList(account);
 
   console.log("Updated Lists with Ids", response.records);
+};
+
+export const getAllConnections = async account => {
+  const nodesResponse = await runCypher(
+    `
+    match (:Account {id: $id})-[r:FOLLOWS]->(n: Account) return n,r
+  `,
+    { id: account }
+  );
+
+  const linksResponse = await runCypher(
+    `
+    match (:Account {id: $id})-[:FOLLOWS]->(n: Account)-[r:FOLLOWS]->(p:Account)<-[:FOLLOWS]-(:Account {id: $id}) return r
+  `,
+    { id: account }
+  );
+
+  const lists = new Set();
+  let data = nodesResponse.records.reduce(
+    (acc, r) => {
+      const node = r.get("n");
+      const rel = r.get("r");
+      acc.nodes[node.identity.low] = {
+        ...omit(node.properties, "json"),
+        tId: node.properties.id,
+        id: node.properties.screenName,
+        list: rel.properties.list,
+        listId: rel.properties.listId
+      };
+      lists.add(rel.properties.list);
+      return acc;
+    },
+    { nodes: {} }
+  );
+
+  data.links = linksResponse.records.map(r => {
+    const link = r.get("r");
+    const nodes = data.nodes;
+    return {
+      source: nodes[link.start.low].id,
+      target: nodes[link.end.low].id,
+      color: COLORS[[...lists].indexOf(nodes[link.start.low].list)]
+    };
+  });
+
+  fs.writeFileSync("test.json", JSON.stringify(data));
+  return data;
 };

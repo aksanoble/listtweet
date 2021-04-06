@@ -1,74 +1,39 @@
 import { ForceGraph2D } from "react-force-graph";
-import { useState, useMemo, useCallback, useEffect } from "react";
-import boa from "@pipcook/boa";
+import { useState, useCallback, useEffect } from "react";
 import Loading from "./loading";
 import { get } from "lodash";
-import data from "../data";
-// import clusters from "../graph/cl";
 
-import cl from "../clusters";
-import { fromEventPattern } from "rxjs";
-
-const clMap = ["red", "blue", "green", "orange", "yellow", "violet"];
-const clusters = JSON.parse(cl).reduce((acc, c, i) => {
-  c.forEach(node => {
-    acc[node] = clMap[i];
-  });
-  return acc;
-}, {});
-
-data.links = data.links.map(link => ({
-  source: link.target,
-  target: link.source,
-  color: clusters[link.source] || "black"
-}));
-
-const NODE_R = 8;
-
-const nodesByName = data.nodes.reduce((acc, node, i) => {
-  acc[node.id] = node;
-  return acc;
-}, {});
-
-const loadImage = url =>
+const loadImage = (url, screenName) =>
   new Promise((resolve, reject) => {
     const img = new Image();
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", err => {
-      img.src = "https://via.placeholder.com/150";
+      img.src = `https://via.placeholder.com/150/000000/FFFFFF/?text=${screenName}`;
       resolve(img);
     });
     img.src = url;
   });
 
-const loadAllImages = async () => {
+const loadAllImages = async nodesByName => {
   const images = await Promise.all(
     Object.values(nodesByName).map(n => {
-      return loadImage(n.img);
+      return loadImage(n.image, n.screenName);
     })
   );
 
   return images;
 };
 
-data.links.forEach(link => {
-  const a = nodesByName[link.source];
-  const b = nodesByName[link.target];
-  !a.neighbors && (a.neighbors = []);
-  !b.neighbors && (b.neighbors = []);
-  a.neighbors.push(b.id);
-  b.neighbors.push(a.id);
-
-  !a.links && (a.links = []);
-  !b.links && (b.links = []);
-  a.links.push(link);
-  b.links.push(link);
-});
-
 const Graph = props => {
   const [highlightNodes, setHighlightNodes] = useState(new Set());
   const [highlightLinks, setHighlightLinks] = useState(new Set());
   const [hoverNode, setHoverNode] = useState(null);
+  const { nodesByName } = props;
+  useEffect(async () => {
+    const response = await fetch("api/network");
+    const data = await response.json();
+    console.log(data, "data");
+  }, []);
 
   const updateHighlight = () => {
     setHighlightNodes(highlightNodes);
@@ -89,19 +54,6 @@ const Graph = props => {
     }
 
     setHoverNode(get(node, "id", null));
-    updateHighlight();
-  };
-
-  const handleLinkHover = link => {
-    highlightNodes.clear();
-    highlightLinks.clear();
-
-    if (link) {
-      highlightLinks.add(link);
-      highlightNodes.add(link.source);
-      highlightNodes.add(link.target);
-    }
-
     updateHighlight();
   };
 
@@ -127,12 +79,10 @@ const Graph = props => {
           ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
         }
       } else {
+        ctx.strokeStyle = "#550527"; // some color/styl
+
         ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
       }
-
-      // ctx.arc(x, y, NODE_R * 1.4, 0, 2 * Math.PI, false);
-      // // ctx.fillStyle = id === hoverNode ? "red" : "orange";
-      // ctx.fill();
     },
     [hoverNode]
   );
@@ -170,27 +120,53 @@ const Graph = props => {
 const GraphWrapper = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [gd, setGD] = useState({});
-  useEffect(() => {
-    loadAllImages()
-      .then(images => {
-        const graphData = {
-          nodes: Object.values(nodesByName).map((n, i) => {
-            return {
-              ...n,
-              img: images[i]
-            };
-          }),
-          links: data.links
+  const [nodesByName, setnodesByName] = useState({});
+  useEffect(async () => {
+    const response = await fetch("/api/network");
+    let data = await response.json();
+    data.nodes = Object.values(data.nodes);
+
+    const nodesByName = data.nodes.reduce((acc, node, i) => {
+      acc[node.id] = node;
+      return acc;
+    }, {});
+    data.links.forEach(link => {
+      const a = nodesByName[link.source];
+      const b = nodesByName[link.target];
+      !a.neighbors && (a.neighbors = []);
+      !b.neighbors && (b.neighbors = []);
+      a.neighbors.push(b.id);
+      b.neighbors.push(a.id);
+
+      !a.links && (a.links = []);
+      !b.links && (b.links = []);
+      a.links.push(link);
+      b.links.push(link);
+    });
+    const images = await loadAllImages(nodesByName);
+    const graphData = {
+      nodes: Object.values(nodesByName).map((n, i) => {
+        return {
+          ...n,
+          img: images[i]
         };
-        setGD(graphData);
-        setIsLoading(false);
-      })
-      .catch(e => {
-        console.log("There was an error in loading images", e);
-      });
+      }),
+      links: data.links
+    };
+    setGD(graphData);
+    setnodesByName(nodesByName);
+    setIsLoading(false);
   }, []);
 
-  return <>{isLoading ? <Loading /> : <Graph graphData={gd} />}</>;
+  return (
+    <>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <Graph nodesByName={nodesByName} graphData={gd} />
+      )}
+    </>
+  );
 };
 
 export default GraphWrapper;

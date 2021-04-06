@@ -101,6 +101,7 @@ export const createPerson = token => {
   return {
     ...token,
     screen_name: token.screenName,
+    profile_image_url_https: token.image,
     id_str: token.id,
     tClient,
     lists: {},
