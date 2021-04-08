@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  @variants responsive {
+    .bg {
+      background-position-x: -370px;
+    }
+  }
+}
+
 body {
   overflow-x: hidden;
 }
@@ -30,4 +38,8 @@ iframe {
 
 .h-confirm {
   height: 50vh;
+}
+
+.force-graph-container {
+  top: 100px;
 }

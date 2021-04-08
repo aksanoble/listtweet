@@ -5,6 +5,9 @@ module.exports = {
     extend: {
       padding: {
         nav: "0px"
+      },
+      backgroundImage: {
+        "hero-lg": "url(/static/network-c.gif)"
       }
     }
   },
