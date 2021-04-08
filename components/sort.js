@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { signOut } from "next-auth/client";
 import { useSession } from "next-auth/client";
 import styles from "./header.module.css";
 import Header from "../components/header";
@@ -19,8 +18,13 @@ export default function Sort() {
   useEffect(async () => {
     setStatus("loading");
     try {
-      const data = await fetchData();
-      setStatus("success");
+      const { status } = await fetchData();
+      console.log(status, "status");
+      if (status === "progress") {
+        setStatus("success");
+      } else if (status === "completed") {
+        Router.push("/network");
+      }
     } catch (error) {
       Router.push("/error");
     }
@@ -65,15 +69,6 @@ export default function Sort() {
                       send you an email once we have your visualization and
                       lists ready. Thank you for trying ListTweet!
                     </p>
-
-                    <div className="flex justify-center p-12">
-                      <button
-                        className="cursor-pointer inline-flex items-center justify-center px-5 py-3 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
-                        onClick={signOut}
-                      >
-                        Logout
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>

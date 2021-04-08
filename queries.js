@@ -1,6 +1,6 @@
 import pThrottle from "p-throttle";
 import { makeLists } from "./utils";
-import { DISTINCT_LIST, COLORS } from "./globals";
+import { DISTINCT_LIST, COLORS, LT_STATUS } from "./globals";
 import lodash from "lodash";
 const { pick, chunk, mapValues, omit } = lodash;
 import { getThrottle } from "./utils";
@@ -53,7 +53,7 @@ export const runCypher = async (command, params) => {
 export const getAllFollowing = async (
   person,
   // Change default back to 65000
-  throttle = pThrottle({ limit: 1, interval: 65 }),
+  throttle = pThrottle({ limit: 1, interval: 65000 }),
   cursor = -1,
   depth = 0,
   isLastUser = false,
@@ -75,8 +75,8 @@ export const getAllFollowing = async (
     `Friends fetched for ${person.name}: ${friends.data.users.length}`
   );
   //Added for testing. To be removed
-  friends.data.next_cursor = null;
-  friends.data.users = friends.data.users.slice(0, 1);
+  // friends.data.next_cursor = null;
+  // friends.data.users = friends.data.users.slice(0, 1);
   if (depth < 1) {
     // Remove slice constraint after testing
     const lastPage = !friends.data.next_cursor;
@@ -120,7 +120,9 @@ export const getAllFollowing = async (
       seedAccount
     );
   } else if (isLastUser) {
-    makeLists(seedAccount);
+    await makeLists(seedAccount);
+  } else if (depth === 0 && friends.data.users.length === 0) {
+    console.log("Account has no followers");
   }
 };
 
@@ -252,6 +254,7 @@ export const addMembersToList = async person => {
   const emailProps = { person, lists: membersByList };
 
   sendMail(person, <EmailTemplate {...emailProps} />);
+  updateStatus(person.id_str, LT_STATUS.completed);
   console.log("Done adding members to list");
 };
 
@@ -333,4 +336,41 @@ export const getAllConnections = async account => {
   });
 
   return data;
+};
+
+const getStatus = async account => {
+  const response = await runCypher(
+    `
+    merge (n:Account {id: $id}) return n.ltStatus as status
+  `,
+    { id: account }
+  );
+
+  return response;
+};
+
+const updateStatus = async (account, status) => {
+  const response = await runCypher(
+    `merge (n: Account {id: $id}) set n.ltStatus = $status return n`,
+    {
+      id: account,
+      status
+    }
+  );
+
+  return response;
+};
+
+export const toFetchNetwork = async account => {
+  const response = await getStatus(account.id_str);
+  const status = response.records[0].get("status");
+
+  if (!status) {
+    const response = await updateStatus(account.id_str, LT_STATUS.progress);
+    const status = response.records[0].get("n");
+    console.log(status, "status");
+    getAllFollowing(account);
+    return LT_STATUS.progress;
+  }
+  return status;
 };

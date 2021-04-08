@@ -68,7 +68,7 @@ const getClusters = (G, d, account) => {
   );
   let clusterCenter = {};
   // Change clusters length to 10
-  if (clusters.length > 5) {
+  if (clusters.length > 10) {
     const others = clusters.splice(5);
     clusterCenter["listtweet-others"] = union(...others);
   }

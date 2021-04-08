@@ -6,7 +6,7 @@ export const RATE_LIMITS = {
     post: 600
   },
   "lists/create": {
-    post: 65
+    post: 65000
   }
 };
 
@@ -24,3 +24,8 @@ export const COLORS = [
 ];
 
 export const DISTINCT_LIST = "listtweet-distinct";
+
+export const LT_STATUS = {
+  progress: "progress",
+  completed: "completed"
+};

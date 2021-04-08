@@ -46,8 +46,9 @@ const EmailTemplate = props => {
       <p>Dear {props.person.name}</p>
       <p>
         Your{" "}
+        <a href={`https://listtweet.com/network`}> Twitter Visualization> </a>
         <a href={`https://twitter.com/${props.person.screenName}/lists`}>
-          Twitter Lists
+          and Lists
         </a>{" "}
         are now ready.
       </p>

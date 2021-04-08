@@ -2,6 +2,7 @@ import { ForceGraph2D } from "react-force-graph";
 import { useState, useCallback, useEffect } from "react";
 import Loading from "./loading";
 import { get } from "lodash";
+import Header from "./header";
 
 const loadImage = (url, screenName) =>
   new Promise((resolve, reject) => {
@@ -163,7 +164,10 @@ const GraphWrapper = () => {
       {isLoading ? (
         <Loading />
       ) : (
-        <Graph nodesByName={nodesByName} graphData={gd} />
+        <>
+          <Header />
+          <Graph nodesByName={nodesByName} graphData={gd} />
+        </>
       )}
     </>
   );
