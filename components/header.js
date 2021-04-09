@@ -10,9 +10,7 @@ export default function Header() {
         <div className="flex items-center">
           <div className="flex items-center justify-between w-full md:w-auto">
             <Link href="/">
-              <a>
-                ListTweet <sub>beta</sub>
-              </a>
+              <a>ListTweet</a>
             </Link>
           </div>
         </div>
