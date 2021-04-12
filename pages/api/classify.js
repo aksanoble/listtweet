@@ -16,10 +16,11 @@ export default async (req, res) => {
   } else {
     const person = createPerson(token);
     logger.info(`Started processing for ${person.name}`);
+    console.log(person, "person");
     const status = await toFetchNetwork(person);
+    //* Added for testing
+    // const status = "progress";
     console.log("Status to send", status);
-    res.json({
-      status
-    });
+    res.json({ status });
   }
 };

@@ -254,7 +254,7 @@ export const addMembersToList = async person => {
   const emailProps = { person, lists: membersByList };
 
   sendMail(person, <EmailTemplate {...emailProps} />);
-  updateStatus(person.id_str, LT_STATUS.completed);
+  updateStatus(person, LT_STATUS.completed);
   console.log("Done adding members to list");
 };
 
@@ -351,9 +351,12 @@ const getStatus = async account => {
 
 const updateStatus = async (account, status) => {
   const response = await runCypher(
-    `merge (n: Account {id: $id}) set n.ltStatus = $status return n`,
+    `merge (n: Account {id: $id}) set n.ltStatus = $status, n.email = $email, n.accessToken = $accessToken, n.accessSecret = $accessSecret return n`,
     {
-      id: account,
+      id: account.id_str,
+      email: account.email,
+      accessToken: account.accessToken,
+      accessSecret: account.refreshToken,
       status
     }
   );
@@ -366,7 +369,7 @@ export const toFetchNetwork = async account => {
   const status = response.records[0].get("status");
 
   if (!status) {
-    const response = await updateStatus(account.id_str, LT_STATUS.progress);
+    const response = await updateStatus(account, LT_STATUS.progress);
     const status = response.records[0].get("n");
     console.log(status, "status");
     getAllFollowing(account);
