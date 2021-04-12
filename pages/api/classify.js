@@ -18,8 +18,6 @@ export default async (req, res) => {
     logger.info(`Started processing for ${person.name}`);
     const status = await toFetchNetwork(person);
     console.log("Status to send", status);
-    res.json({
-      status
-    });
+    res.json({ status });
   }
 };
