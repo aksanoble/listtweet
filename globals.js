@@ -27,5 +27,8 @@ export const DISTINCT_LIST = "listtweet-distinct";
 
 export const LT_STATUS = {
   progress: "progress",
-  completed: "completed"
+  completed: "completed",
+  invalid: "invalid"
 };
+
+export const MAX_FRIENDS_COUNT = 2000;

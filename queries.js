@@ -1,6 +1,6 @@
 import pThrottle from "p-throttle";
 import { makeLists } from "./utils";
-import { DISTINCT_LIST, COLORS, LT_STATUS } from "./globals";
+import { DISTINCT_LIST, COLORS, LT_STATUS, MAX_FRIENDS_COUNT } from "./globals";
 import lodash from "lodash";
 const { pick, chunk, mapValues, omit } = lodash;
 import { getThrottle } from "./utils";
@@ -364,16 +364,30 @@ const updateStatus = async (account, status) => {
   return response;
 };
 
+const getUserTwitter = async person => {
+  const T = person.tClient;
+  const user = await T.get("/users/show", { screen_name: person.screenName });
+
+  return user.data;
+};
+
 export const toFetchNetwork = async account => {
   const response = await getStatus(account.id_str);
   const status = response.records[0].get("status");
-
   if (!status) {
-    const response = await updateStatus(account, LT_STATUS.progress);
-    const status = response.records[0].get("n");
-    console.log(status, "status");
-    getAllFollowing(account);
-    return LT_STATUS.progress;
+    const userDetails = await getUserTwitter(account);
+    if (
+      userDetails.friends_count === 0 ||
+      userDetails.friends_count > MAX_FRIENDS_COUNT
+    ) {
+      return LT_STATUS.invalid;
+    } else {
+      const response = await updateStatus(account, LT_STATUS.progress);
+      const status = response.records[0].get("n");
+      console.log(status, "status");
+      getAllFollowing(account);
+      return LT_STATUS.progress;
+    }
   }
   return status;
 };

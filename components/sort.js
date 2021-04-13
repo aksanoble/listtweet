@@ -20,10 +20,10 @@ export default function Sort() {
     try {
       const { status } = await fetchData();
       console.log(status, "status");
-      if (status === "progress") {
-        setStatus("success");
-      } else if (status === "completed") {
+      if (status === "completed") {
         Router.push("/network");
+      } else {
+        setStatus(status);
       }
     } catch (error) {
       Router.push("/error");
@@ -56,7 +56,7 @@ export default function Sort() {
         </div>
 
         <div>
-          {status === "success" && (
+          {status === "progress" && (
             <>
               <div className="relative py-16 bg-white overflow-hidden">
                 <div className="flex justify-center relative px-4 sm:px-6 lg:px-8">
@@ -68,6 +68,24 @@ export default function Sort() {
                       We have started fetching your twitter network. We will
                       send you an email once we have your visualization and
                       lists ready. Thank you for trying ListTweet!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          {status === "invalid" && (
+            <>
+              <div className="relative py-16 bg-white overflow-hidden">
+                <div className="flex justify-center relative px-4 sm:px-6 lg:px-8">
+                  <div className="text-lg max-w-prose mx-auto mb-6">
+                    <h1 className="mt-2 mb-8 text-3xl text-center leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl sm:leading-10">
+                      We have a problem{" "}
+                    </h1>
+                    <p className="text-xl text-center text-gray-500 leading-8">
+                      The number of accounts you follow must be between 1 and
+                      2000. <br /> If you need help please write to
+                      hello@listtweet.com
                     </p>
                   </div>
                 </div>
