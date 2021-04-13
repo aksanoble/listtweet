@@ -74,6 +74,7 @@ export const getAllFollowing = async (
   logger.info(
     `Friends fetched for ${person.name}: ${friends.data.users.length}`
   );
+
   //Added for testing. To be removed
   // friends.data.next_cursor = null;
   // friends.data.users = friends.data.users.slice(0, 1);
@@ -81,8 +82,11 @@ export const getAllFollowing = async (
     // Remove slice constraint after testing
     const lastPage = !friends.data.next_cursor;
     logToTelegram(`Number of pages fetched ${++friendCount}`);
-    friends.data.users.forEach((u, index) => {
-      const isLastUser = index == friends.data.users.length - 1 && lastPage;
+    const users = friends.data.users.filter(
+      u => u.friends_count <= MAX_FRIENDS_COUNT
+    );
+    users.forEach((u, index) => {
+      const isLastUser = index == users.length - 1 && lastPage;
       u.tClient = person.tClient;
       getAllFollowing(
         Object.assign({}, u),
