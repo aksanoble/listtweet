@@ -420,7 +420,7 @@ export const toFetchNetwork = async account => {
 
 export const getInProgress = async () => {
   const response = await runCypher(
-    `merge (n: Account {ltStatus: ${LT_STATUS.progress}}) return n`
+    `merge (n: Account {ltStatus: "${LT_STATUS.progress}"}) return n`
   );
 
   const records = response.records;
