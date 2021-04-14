@@ -33,7 +33,6 @@ const Graph = props => {
   useEffect(async () => {
     const response = await fetch("api/network");
     const data = await response.json();
-    console.log(data, "data");
   }, []);
 
   const updateHighlight = () => {

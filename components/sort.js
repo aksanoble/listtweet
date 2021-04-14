@@ -19,7 +19,6 @@ export default function Sort() {
     setStatus("loading");
     try {
       const { status } = await fetchData();
-      console.log(status, "status");
       if (status === "completed") {
         Router.push("/network");
       } else {

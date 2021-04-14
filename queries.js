@@ -1,9 +1,7 @@
 import pThrottle from "p-throttle";
-import { makeLists } from "./utils";
 import { DISTINCT_LIST, COLORS, LT_STATUS, MAX_FRIENDS_COUNT } from "./globals";
-import lodash from "lodash";
-const { pick, chunk, mapValues, omit } = lodash;
-import { getThrottle, networkCached } from "./utils";
+import { pick, chunk, mapValues, omit } from "lodash";
+import { getThrottle, networkCached, makeLists, createPerson } from "./utils";
 import { addToGraph } from "./add-to-graph.js";
 import EmailTemplate from "./emailTemplates/email-template-html";
 import logger from "./logger.js";
@@ -68,9 +66,8 @@ export const getAllFollowing = async (
     networkFetched.records[0].get("n").properties.nFetched
   );
   if (depth > 0 && !!fetchedRecently) {
-    console.log("Already cached, skipping  ", person.name);
+    logToTelegram(`Already cached, skipping: ${person.name}`);
     if (isLastUser) {
-      console.log("LastUser cached!");
       await makeLists(seedAccount);
     }
   } else {
@@ -92,7 +89,6 @@ export const getAllFollowing = async (
     if (depth < 1) {
       // Remove slice constraint after testing
       const lastPage = !friends.data.next_cursor;
-      logToTelegram(`Number of pages fetched ${++friendCount}`);
       const users = friends.data.users.filter(
         u => u.friends_count <= MAX_FRIENDS_COUNT
       );
@@ -139,7 +135,6 @@ export const getAllFollowing = async (
       await makeLists(seedAccount);
     } else if (depth === 0 && friends.data.users.length === 0) {
       updateNetworkStatus(person);
-      console.log("Account has no followers");
     } else {
       updateNetworkStatus(person);
     }
@@ -272,7 +267,7 @@ export const addMembersToList = async person => {
 };
 
 export const getListMembers = async account => {
-  console.log("Getting list memebers");
+  console.log("Getting list members");
   const response = await runCypher(
     `
     match (:Account {id: $id})-[r:FOLLOWS]->(q) return collect(q) as q, r.listId as listId, r.list as listName
@@ -416,11 +411,44 @@ export const toFetchNetwork = async account => {
       return LT_STATUS.invalid;
     } else {
       const response = await updateStatus(account, LT_STATUS.progress);
-      const status = response.records[0].get("n");
-      console.log(status, "status");
       getAllFollowing(account);
       return LT_STATUS.progress;
     }
   }
   return status;
 };
+
+export const getInProgress = async () => {
+  const response = await runCypher(
+    `merge (n: Account {ltStatus: ${LT_STATUS.progress}}) return n`
+  );
+
+  const records = response.records;
+  records.forEach(r => {
+    const user = r.get("n");
+    const account = createPerson({
+      accessToken: user.properties.accessToken,
+      refreshToken: user.properties.accessSecret,
+      image: user.properties.image,
+      screenName: user.properties.screenName,
+      id: user.properties.id,
+      name: user.properties.name,
+      email: user.properties.email
+    });
+    getAllFollowing(account);
+    logToTelegram(`Network fetch restarted for ${user.properties.screenName}`);
+  });
+};
+
+// Hack to trigger restart unfinished network fetches. To be run once
+
+process
+  .on("unhandledRejection", async (reason, p) => {
+    await logToTelegram(`${reason} "Unhandled Rejection at Promise", ${p}`);
+  })
+  .on("uncaughtException", async err => {
+    await logToTelegram(`${err}, "Uncaught Exception thrown"`);
+    process.exit(1);
+  });
+
+getInProgress();

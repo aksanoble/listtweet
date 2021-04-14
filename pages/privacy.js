@@ -12,8 +12,9 @@ export default function Page() {
               Privacy Policy
             </h1>
             <p className="text-xl text-center text-gray-500 leading-8">
-              Twitter access tokens will only be used to compute Lists and
-              deleted immediately once the task is completed.
+              Private information collected includes email. We use this to send
+              you report on created lists and visualisation. Apart from email we
+              only access accounts that you follow.
             </p>
           </div>
         </div>

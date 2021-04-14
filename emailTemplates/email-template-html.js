@@ -10,7 +10,6 @@ const getListsById = lists => {
 const listDetails = lists => {
   return Object.keys(lists).map((listId, index) => {
     const list = lists[listId];
-    console.log(list, "listdetails");
     if (list.nodes.length > 0) {
       return (
         <p key={index}>

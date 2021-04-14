@@ -76,14 +76,12 @@ const getClusters = (G, d, account) => {
     const others = clusters.splice(5);
     clusterCenter["listtweet-others"] = union(...others);
   }
-  console.log(clusterCenter, "pre-reduce");
   clusterCenter = clusters.reduce((acc, c) => {
     const centerNode = maxBy(c, n => j(list(G.neighbors(n))).length);
     acc[`listtweet-${d.nodes[centerNode].screenName}`] = c;
     return acc;
   }, clusterCenter);
 
-  console.log(clusterCenter, "post-reduce");
   writeListDB(clusterCenter, account);
 };
 
