@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "NODE_ENV=production node server/server.js"
+    "start": "NODE_ENV=production node server.js"
   },
   "license": "ISC",
   "dependencies": {
