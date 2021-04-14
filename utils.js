@@ -2,13 +2,17 @@ import { groupBy, maxBy, orderBy, get, set as _set, union } from "lodash";
 import pThrottle from "p-throttle";
 import logger from "./logger";
 import boa from "@pipcook/boa";
+import differenceInDays from "date-fns/differenceInDays";
+import parseISO from "date-fns/parseISO";
+
 const { list } = boa.builtins();
 const networkx = boa.import("networkx");
 const json = boa.import("jsonpickle");
 const louvain = boa.import("community");
+
 import { getConnectedFriends, makeDistinctList, writeListDB } from "./queries";
 
-import { RATE_LIMITS } from "./globals";
+import { RATE_LIMITS, CACHE_DAYS } from "./globals";
 import Twit from "twit";
 
 export const j = v =>
@@ -81,4 +85,12 @@ const getClusters = (G, d, account) => {
 
   console.log(clusterCenter, "post-reduce");
   writeListDB(clusterCenter, account);
+};
+
+export const networkCached = timestamp => {
+  if (!timestamp) return false;
+  return (
+    differenceInDays(parseISO(new Date().toISOString()), parseISO(timestamp)) <
+    CACHE_DAYS
+  );
 };

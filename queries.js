@@ -3,7 +3,7 @@ import { makeLists } from "./utils";
 import { DISTINCT_LIST, COLORS, LT_STATUS, MAX_FRIENDS_COUNT } from "./globals";
 import lodash from "lodash";
 const { pick, chunk, mapValues, omit } = lodash;
-import { getThrottle } from "./utils";
+import { getThrottle, networkCached } from "./utils";
 import { addToGraph } from "./add-to-graph.js";
 import EmailTemplate from "./emailTemplates/email-template-html";
 import logger from "./logger.js";
@@ -63,80 +63,92 @@ export const getAllFollowing = async (
   const screenName = person.screen_name;
 
   logger.info(`Fetching friends for ${person.name} depth is ${depth}`);
-  const friends = await throttle(() => {
-    return T.get(`friends/list`, {
-      screen_name: screenName,
-      count: 200,
-      cursor
-    });
-  })();
-
-  logger.info(
-    `Friends fetched for ${person.name}: ${friends.data.users.length}`
+  const networkFetched = await getNetworkStatus(person);
+  const fetchedRecently = networkCached(
+    networkFetched.records[0].get("n").properties.nFetched
   );
+  if (depth > 0 && !!fetchedRecently) {
+    console.log("Already cached, skipping  ", person.name);
+    if (isLastUser) {
+      console.log("LastUser cached!");
+      await makeLists(seedAccount);
+    }
+  } else {
+    const friends = await throttle(() => {
+      return T.get(`friends/list`, {
+        screen_name: screenName,
+        count: 200,
+        cursor
+      });
+    })();
 
-  //Added for testing. To be removed
-  // friends.data.next_cursor = null;
-  // friends.data.users = friends.data.users.slice(0, 1);
-  if (depth < 1) {
-    // Remove slice constraint after testing
-    const lastPage = !friends.data.next_cursor;
-    logToTelegram(`Number of pages fetched ${++friendCount}`);
-    const users = friends.data.users.filter(
-      u => u.friends_count <= MAX_FRIENDS_COUNT
+    logger.info(
+      `Friends fetched for ${person.name}: ${friends.data.users.length}`
     );
-    users.forEach((u, index) => {
-      const isLastUser = index == users.length - 1 && lastPage;
-      u.tClient = person.tClient;
+
+    //Added for testing. To be removed
+    // friends.data.next_cursor = null;
+    // friends.data.users = friends.data.users.slice(0, 1);
+    if (depth < 1) {
+      // Remove slice constraint after testing
+      const lastPage = !friends.data.next_cursor;
+      logToTelegram(`Number of pages fetched ${++friendCount}`);
+      const users = friends.data.users.filter(
+        u => u.friends_count <= MAX_FRIENDS_COUNT
+      );
+      users.forEach((u, index) => {
+        const isLastUser = index == users.length - 1 && lastPage;
+        u.tClient = person.tClient;
+        getAllFollowing(
+          Object.assign({}, u),
+          throttle,
+          (cursor = -1),
+          1,
+          isLastUser,
+          seedAccount
+        );
+      });
+    }
+    const users = friends.data.users.map(u => ({
+      ...u,
+      json: JSON.stringify(pick(u, personProps))
+    }));
+
+    const personToAdd = {
+      ...pick(person, [
+        "name",
+        "screen_name",
+        "id_str",
+        "profile_image_url_https"
+      ]),
+      users: users,
+      json: JSON.stringify(pick(person, personProps))
+    };
+    addToGraph(personToAdd);
+    if (friends.data.next_cursor) {
       getAllFollowing(
-        Object.assign({}, u),
+        Object.assign({}, person),
         throttle,
-        (cursor = -1),
-        1,
+        friends.data.next_cursor_str,
+        depth,
         isLastUser,
         seedAccount
       );
-    });
-  }
-  const users = friends.data.users.map(u => ({
-    ...u,
-    json: JSON.stringify(pick(u, personProps))
-  }));
-
-  const personToAdd = {
-    ...pick(person, [
-      "name",
-      "screen_name",
-      "id_str",
-      "profile_image_url_https"
-    ]),
-    users: users,
-    json: JSON.stringify(pick(person, personProps))
-  };
-  addToGraph(personToAdd);
-  if (friends.data.next_cursor) {
-    getAllFollowing(
-      Object.assign({}, person),
-      throttle,
-      friends.data.next_cursor_str,
-      depth,
-      isLastUser,
-      seedAccount
-    );
-  } else if (isLastUser) {
-    await makeLists(seedAccount);
-  } else if (depth === 0 && friends.data.users.length === 0) {
-    console.log("Account has no followers");
+    } else if (isLastUser) {
+      updateNetworkStatus(person);
+      await makeLists(seedAccount);
+    } else if (depth === 0 && friends.data.users.length === 0) {
+      updateNetworkStatus(person);
+      console.log("Account has no followers");
+    } else {
+      updateNetworkStatus(person);
+    }
   }
 };
 
 export const getConnectedFriends = async account => {
   const response = await runCypher(
-    `match (n: Account)-[r]-(p) where exists {
-      match (:Account {id: $account})-[s:FOLLOWS]->(p) where exists {
-          match (: Account {id: $account})-[t:FOLLOWS]->(n)
-        }
-    } return n,r,p`,
+    `match (:Account {id: $account})-[:FOLLOWS]->(n: Account)-[r:FOLLOWS]->(p:Account)<-[:FOLLOWS]-(:Account {id: $account}) return n,r,p`,
     { account }
   );
   const data = response.records.reduce(
@@ -161,11 +173,8 @@ export const getConnectedFriends = async account => {
 
 export const makeDistinctList = async account => {
   const response = await runCypher(
-    `match (n: Account)-[r]-(p) where exists {
-      match (:Account {id: $account})-[:FOLLOWS]->(p) where exists {
-        match (: Account {id: $account})-[:FOLLOWS]->(n)
-      }
-    } with collect (distinct n) as faccounts
+    `match (:Account {id: $account})-[:FOLLOWS]->(n: Account)-[r:FOLLOWS]->(p:Account)<-[:FOLLOWS]-(:Account {id: $account}) 
+    with collect (distinct n) as faccounts
     match (n: Account {id: $account})-[r:FOLLOWS]->(p) with p
     where not p in faccounts with p
     match(p)<-[r:FOLLOWS]-(:Account {id: $account}) set r.list = '${DISTINCT_LIST}'
@@ -364,6 +373,26 @@ const updateStatus = async (account, status) => {
       status
     }
   );
+
+  return response;
+};
+
+const updateNetworkStatus = async account => {
+  const response = await runCypher(
+    `merge (n: Account {id: $id}) set n.nFetched = $timestamp return n`,
+    {
+      id: account.id_str,
+      timestamp: new Date().toISOString()
+    }
+  );
+
+  return response;
+};
+
+const getNetworkStatus = async account => {
+  const response = await runCypher(`merge (n: Account {id: $id}) return n`, {
+    id: account.id_str
+  });
 
   return response;
 };

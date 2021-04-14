@@ -32,3 +32,5 @@ export const LT_STATUS = {
 };
 
 export const MAX_FRIENDS_COUNT = 2000;
+
+export const CACHE_DAYS = 30;
