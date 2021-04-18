@@ -23,3 +23,5 @@ Create Neo4j indexes
 https://neo4j.com/docs/cypher-manual/current/administration/indexes-for-search-performance/#administration-indexes-create-a-single-property-index
 
 Create index on the id property as all lookups are based on Twitter ID. This was creating a huge bottleneck earlier.
+
+On every restart all accounts that are in Inprogress stage are fetched.

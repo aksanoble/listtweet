@@ -16,7 +16,7 @@ export default async (req, res) => {
     });
   } else {
     const person = createPerson(token);
-    logToTelegram(`Started processing for ${person.name}`);
+    logToTelegram(`Started processing for ${person.screenName}`);
     const status = await toFetchNetwork(person);
     res.json({ status });
   }

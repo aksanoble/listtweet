@@ -66,7 +66,7 @@ export const getAllFollowing = async (
     networkFetched.records[0].get("n").properties.nFetched
   );
   if (depth > 0 && !!fetchedRecently) {
-    logToTelegram(`Already cached, skipping: ${person.name}`);
+    logger.info(`Already cached, skipping: ${person.screen_name}`);
     if (isLastUser) {
       await makeLists(seedAccount);
     }
@@ -349,9 +349,16 @@ export const getAllConnections = async account => {
 const getStatus = async account => {
   const response = await runCypher(
     `
-    merge (n:Account {id: $id}) return n.ltStatus as status
+    merge (n:Account {id: $id}) set n.name = $name, n.screenName = $screenName, n.accessToken = $accessToken, n.accessSecret = $accessSecret, n.email = $email return n.ltStatus as status
   `,
-    { id: account }
+    {
+      id: account.id_str,
+      email: account.email,
+      accessToken: account.accessToken,
+      accessSecret: account.refreshToken,
+      name: account.name,
+      screenName: account.screenName
+    }
   );
 
   return response;
@@ -400,7 +407,7 @@ const getUserTwitter = async person => {
 };
 
 export const toFetchNetwork = async account => {
-  const response = await getStatus(account.id_str);
+  const response = await getStatus(account);
   const status = response.records[0].get("status");
   if (!status) {
     const userDetails = await getUserTwitter(account);
@@ -408,6 +415,7 @@ export const toFetchNetwork = async account => {
       userDetails.friends_count === 0 ||
       userDetails.friends_count > MAX_FRIENDS_COUNT
     ) {
+      const response = await updateStatus(account, LT_STATUS.invalid);
       return LT_STATUS.invalid;
     } else {
       const response = await updateStatus(account, LT_STATUS.progress);
@@ -420,7 +428,7 @@ export const toFetchNetwork = async account => {
 
 export const getInProgress = async () => {
   const response = await runCypher(
-    `merge (n: Account {ltStatus: "${LT_STATUS.progress}"}) return n`
+    `match (n: Account {ltStatus: "${LT_STATUS.progress}"}) return n`
   );
 
   const records = response.records;
