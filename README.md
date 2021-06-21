@@ -2,6 +2,10 @@ ListTweet
 
 Uses Boa for working with Python modules.
 
+start neo4j docker container 
+
+pm2 start npm -- start
+
 ./node_modules/.bin/bip install <package-name>
 
 Depends on networkx, jsonpickle, python_louvain
