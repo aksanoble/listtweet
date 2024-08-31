@@ -272,10 +272,10 @@
   resolved "https://registry.yarnpkg.com/@panva/asn1.js/-/asn1.js-1.0.0.tgz#dd55ae7b8129e02049f009408b97c61ccf9032f6"
   integrity sha512-UdkG3mLEqXgnlKsWanWcgb6dOjUzJ+XC5f+aWw30qrtjxeNUSfKX1cd5FBzOaXQumoe9nIqeZUvrRJS03HCCtw==
 
-"@pipcook/boa@^1.2.0-beta.0":
-  version "1.2.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@pipcook/boa/-/boa-1.2.0-beta.0.tgz#2f47f3f0aeba15beed0524d7dd5c02cb2d4d8c46"
-  integrity sha512-pS7y6OAueVtmjeho9viN1/SCjWWAMGOPZ4z0F36GlIXygvm94OmSYVeiaBPwDZx0GlolL8XQvVFmUW/otagSiw==
+"@pipcook/boa@^1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@pipcook/boa/-/boa-1.3.1.tgz#e484b981a1ab1e2082bbe68b7c77f36a178c45e1"
+  integrity sha512-Nw+mtwCpju6fNOGMgOLfsNLBS7pOm9VRtjKrKIXJH/xAaq6su1LHkS3JXf9bIvpesyY18LvqLkkcwmzAP/lSUQ==
   dependencies:
     bindings "^1.5.0"
     debug "^4.1.1"
