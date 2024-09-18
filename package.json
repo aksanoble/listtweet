@@ -13,7 +13,7 @@
     "@pipcook/boa": "^1.2.0-beta.0",
     "cytoscape": "^3.18.1",
     "date-fns": "^2.20.3",
-    "express": "^4.17.1",
+    "express": "^4.20.0",
     "lodash": "^4.17.20",
     "natural": "^3.0.1",
     "neo4j-driver": "^4.2.3",
