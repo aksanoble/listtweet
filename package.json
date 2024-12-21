@@ -17,7 +17,7 @@
     "lodash": "^4.17.20",
     "natural": "^3.0.1",
     "neo4j-driver": "^4.2.3",
-    "next": "^10.0.6",
+    "next": "^14.2.15",
     "next-auth": "^3.3.0",
     "ngraph.graph": "^19.1.0",
     "ngraph.louvain": "^2.0.0",
